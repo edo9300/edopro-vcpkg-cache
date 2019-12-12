@@ -39,8 +39,9 @@ jobs:
         curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name \
           https://github.com/libevent/libevent/releases/download/release-2.1.11-stable/libevent-2.1.11-stable.tar.gz
         tar xf libevent-2.1.11-stable.tar.gz
+        LIBEVENT_INSTALL=$PWD/libevent
         cd libevent-2.1.11-stable
-        ./configure --prefix ../libevent
+        ./configure --prefix $LIBEVENT_INSTALL
         make -j2
         make install
     - name: Build discord-rpc-payload (edo9300/discord-rpc)
