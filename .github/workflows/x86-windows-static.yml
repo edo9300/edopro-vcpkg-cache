@@ -16,6 +16,7 @@ jobs:
     - name: Install dependencies
       shell: bash
       run: |
+        cd vcpkg
         ./vcpkg install --triplet x86-windows-static \
           lua[cpp] \
           sqlite3 libevent \
@@ -24,7 +25,9 @@ jobs:
           sdl2-mixer[libflac,mpg123libvorbis]
     - name: Zip up binaries
       shell: powershell
-      run: Compress-Archive -Path installed -DestinationPath installed_x86-windows-static.zip
+      run: |
+        cd vcpkg
+        Compress-Archive -Path installed -DestinationPath installed_x86-windows-static.zip
     - name: Create GitHub Release
       id: create_release
       uses: actions/create-release@v1
@@ -41,6 +44,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./installed_x86-windows-static.zip
+        asset_path: ./vcpkg/installed_x86-windows-static.zip
         asset_name: installed_x86-windows-static.zip
         asset_content_type: application/zip
