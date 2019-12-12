@@ -1,0 +1,46 @@
+name: vcpkg (x86-windows-static)
+on: push
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+    - name: Install vcpkg
+      shell: powershell
+      run: |
+        git clone --depth=1 https://github.com/Microsoft/vcpkg.git
+        cd vcpkg
+        .\bootstrap-vcpkg.bat
+    - name: Install dependencies
+      shell: bash
+      run: |
+        ./vcpkg install --triplet x86-windows-static \
+          lua[cpp] \
+          sqlite3 libevent \
+          bzip2 libjpeg-turbo libpng zlib \
+          curl fmt nlohmann-json \
+          sdl2-mixer[libflac,mpg123libvorbis]
+    - name: Zip up binaries
+      shell: powershell
+      run: Compress-Archive -Path installed -DestinationPath installed_x86-windows-static.zip
+    - name: Create GitHub Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: latest
+        draft: false
+        prerelease: true
+    - name: Upload binaries to GitHub
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }
+        asset_path: ./installed_x86-windows-static.zip
+        asset_name: installed_x86-windows-static.zip
+        asset_content_type: application/zip
