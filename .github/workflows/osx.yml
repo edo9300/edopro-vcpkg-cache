@@ -39,11 +39,11 @@ jobs:
         curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name \
           https://github.com/libevent/libevent/releases/download/release-2.1.11-stable/libevent-2.1.11-stable.tar.gz
         tar xf libevent-2.1.11-stable.tar.gz
-        LIBEVENT_INSTALL=$PWD/libevent
         cd libevent-2.1.11-stable
-        ./configure --prefix $LIBEVENT_INSTALL
+        ./configure --prefix /usr/local/opt/libevent
         make -j2
         make install
+        cp -r /usr/local/opt/libevent ../libevent
     - name: Build discord-rpc-payload (edo9300/discord-rpc)
       run: |
         git clone --depth=1 https://github.com/edo9300/discord-rpc.git discord-rpc-payload

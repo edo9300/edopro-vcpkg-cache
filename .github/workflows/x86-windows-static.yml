@@ -20,7 +20,7 @@ jobs:
         cd vcpkg
         ./vcpkg install --triplet x86-windows-static \
           lua[cpp] \
-          libevent sqlite3 \
+          libevent[thread] sqlite3 \
           bzip2 libjpeg-turbo libpng zlib \
           curl libgit2 fmt nlohmann-json \
           sdl2-mixer[libflac,mpg123,libvorbis] \
@@ -30,16 +30,6 @@ jobs:
       run: |
         cd vcpkg
         Compress-Archive -Path installed -DestinationPath installed_x86-windows-static.zip
-    - name: Create GitHub Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: latest
-        release_name: latest
-        draft: false
-        prerelease: true
     - name: Upload binaries to GitHub
       uses: actions/upload-release-asset@v1.0.1
       env:

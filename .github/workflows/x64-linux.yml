@@ -18,7 +18,7 @@ jobs:
         cp -r ports/discord-rpc-payload vcpkg/ports/discord-rpc-payload
         cd vcpkg
         ./vcpkg install \
-          libevent sqlite3 \
+          libevent[thread] sqlite3 \
           curl libgit2 fmt nlohmann-json \
           sdl2-mixer[libflac,mpg123,libvorbis] \
           discord-rpc-payload
