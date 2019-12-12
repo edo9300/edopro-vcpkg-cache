@@ -1,0 +1,5 @@
+Source: discord-rpc-payload
+Version: 4.0.0
+Homepage: https://github.com/edo9300/discord-rpc
+Description: edo9300's fork of Discord Rich Presence with an added payload parameter
+Build-Depends: rapidjson

@@ -16,13 +16,15 @@ jobs:
     - name: Install dependencies
       shell: bash
       run: |
+        cp -r ports/discord-rpc-payload vcpkg/ports/discord-rpc-payload
         cd vcpkg
         ./vcpkg install --triplet x86-windows-static \
           lua[cpp] \
           libevent sqlite3 \
           bzip2 libjpeg-turbo libpng zlib \
           curl libgit2 fmt nlohmann-json \
-          sdl2-mixer[libflac,mpg123,libvorbis]
+          sdl2-mixer[libflac,mpg123,libvorbis] \
+          discord-rpc-payload
     - name: Zip binaries
       shell: powershell
       run: |
