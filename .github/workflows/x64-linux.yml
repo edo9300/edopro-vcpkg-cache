@@ -11,7 +11,7 @@ jobs:
       run: |
         git clone --depth=1 https://github.com/Microsoft/vcpkg.git
         cd vcpkg
-        .\bootstrap-vcpkg.bat
+        ./bootstrap-vcpkg.sh
     - name: Install dependencies
       run: |
         cd vcpkg
@@ -19,7 +19,7 @@ jobs:
           libevent sqlite3 \
           curl libgit2 fmt nlohmann-json \
           sdl2-mixer[libflac,mpg123,libvorbis]
-    - name: 7-Zip up binaries
+    - name: 7-Zip binaries
       run: |
         cd vcpkg
         7z a installed_x64-linux.7z installed
@@ -39,6 +39,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./installed_x64-linux.7z
+        asset_path: ./vcpkg/installed_x64-linux.7z
         asset_name: installed_x64-linux.7z
-        asset_content_type: application/zip
+        asset_content_type: application/x-7z-compressed

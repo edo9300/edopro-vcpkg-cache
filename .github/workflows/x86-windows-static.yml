@@ -23,7 +23,7 @@ jobs:
           bzip2 libjpeg-turbo libpng zlib \
           curl libgit2 fmt nlohmann-json \
           sdl2-mixer[libflac,mpg123,libvorbis]
-    - name: Zip up binaries
+    - name: Zip binaries
       shell: powershell
       run: |
         cd vcpkg
