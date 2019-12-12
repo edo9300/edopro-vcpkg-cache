@@ -1,33 +1,28 @@
-name: vcpkg (x86-windows-static)
+name: vcpkg (x64-linux)
 on: push
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v1
       with:
         fetch-depth: 1
     - name: Install vcpkg
-      shell: powershell
       run: |
         git clone --depth=1 https://github.com/Microsoft/vcpkg.git
         cd vcpkg
         .\bootstrap-vcpkg.bat
     - name: Install dependencies
-      shell: bash
       run: |
         cd vcpkg
         ./vcpkg install --triplet x86-windows-static \
-          lua[cpp] \
           libevent sqlite3 \
-          bzip2 libjpeg-turbo libpng zlib \
           curl libgit2 fmt nlohmann-json \
           sdl2-mixer[libflac,mpg123,libvorbis]
-    - name: Zip up binaries
-      shell: powershell
+    - name: 7-Zip up binaries
       run: |
         cd vcpkg
-        Compress-Archive -Path installed -DestinationPath installed_x86-windows-static.zip
+        7z a installed_x64-linux.7z installed
     - name: Create GitHub Release
       id: create_release
       uses: actions/create-release@v1
@@ -44,6 +39,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./vcpkg/installed_x86-windows-static.zip
-        asset_name: installed_x86-windows-static.zip
+        asset_path: ./installed_x64-linux.7z
+        asset_name: installed_x64-linux.7z
         asset_content_type: application/zip
