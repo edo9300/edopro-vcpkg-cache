@@ -16,14 +16,15 @@ jobs:
           https://raw.githubusercontent.com/edo9300/ygopro/master/travis/get-osx-sdk.sh
         chmod +x get-osx-sdk.sh
         ./get-osx-sdk.sh $MACOSX_DEPLOYMENT_TARGET
-    - name: Install 7-Zip and GNU Patch
+    - name: Install dependencies from Homebrew
       run: |
         brew update
-        brew install p7zip gpatch
+        brew install dos2unix p7zip gpatch
     - name: Build patched Irrlicht
       run: |
         curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name \
           https://raw.githubusercontent.com/edo9300/ygopro/master/irrlicht/irrlicht-macOS.patch
+        unix2dos irrlicht-macOS.patch
         curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name \
           https://downloads.sourceforge.net/irrlicht/irrlicht-1.8.4.zip
         7z x irrlicht-1.8.4.zip
@@ -42,7 +43,7 @@ jobs:
         ./configure --prefix ../libevent
         make -j2
         make install
-    - name: Build Discord RPC with Payloads (edo9300/discord-rpc)
+    - name: Build discord-rpc-payload (edo9300/discord-rpc)
       run: |
         git clone --depth=1 https://github.com/edo9300/discord-rpc.git discord-rpc-payload
         mkdir -p discord-rpc-payload/build
