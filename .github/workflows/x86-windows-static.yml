@@ -17,7 +17,7 @@ jobs:
       shell: bash
       run: |
         cp -r ports/discord-rpc-payload vcpkg/ports/discord-rpc-payload
-        echo "set(VCPKG_PLATFORM_TOOLSET v141)" >> vcpkg/triplets/x86-windows-static.cmake
+        echo -e "\nset(VCPKG_PLATFORM_TOOLSET v141)" >> vcpkg/triplets/x86-windows-static.cmake
     - name: Install dependencies
       shell: bash
       run: |
