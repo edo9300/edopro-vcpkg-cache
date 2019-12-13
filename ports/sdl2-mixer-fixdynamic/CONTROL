@@ -1,4 +1,4 @@
-Source: sdl2-mixer
+Source: sdl2-mixer-fixdynamic
 Version: 2.0.4-3
 Homepage: https://www.libsdl.org/projects/SDL_mixer
 Description: Multi-channel audio mixer library for SDL.
