@@ -16,11 +16,12 @@ jobs:
       run: |
         sudo apt-get install -y yasm
         cp -r ports/discord-rpc-payload vcpkg/ports/discord-rpc-payload
+        cp -r ports/sdl2-mixer-fixdynamic vcpkg/ports/sdl2-mixer-fixdynamic
         cd vcpkg
         ./vcpkg install \
           libevent[thread] sqlite3 \
           curl libgit2 fmt nlohmann-json \
-          sdl2-mixer[libflac,mpg123,libvorbis] \
+          sdl2-mixer-fixdynamic[libflac,mpg123,libvorbis] \
           discord-rpc-payload
     - name: 7-Zip binaries
       run: |

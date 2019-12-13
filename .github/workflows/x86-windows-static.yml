@@ -17,6 +17,7 @@ jobs:
       shell: bash
       run: |
         cp -r ports/discord-rpc-payload vcpkg/ports/discord-rpc-payload
+        cp -r ports/sdl2-mixer-fixdynamic vcpkg/ports/sdl2-mixer-fixdynamic
         echo -e "\nset(VCPKG_PLATFORM_TOOLSET v141)" >> vcpkg/triplets/x86-windows-static.cmake
     - name: Install dependencies
       shell: bash
@@ -27,7 +28,7 @@ jobs:
           libevent[thread] sqlite3 \
           bzip2 libjpeg-turbo libpng zlib \
           curl libgit2 fmt nlohmann-json \
-          sdl2-mixer[libflac,mpg123,libvorbis] \
+          sdl2-mixer-fixdynamic[libflac,mpg123,libvorbis] \
           discord-rpc-payload
     - name: Zip binaries
       shell: bash
