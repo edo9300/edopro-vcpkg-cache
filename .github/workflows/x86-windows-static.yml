@@ -13,10 +13,14 @@ jobs:
         git clone --depth=1 https://github.com/Microsoft/vcpkg.git
         cd vcpkg
         .\bootstrap-vcpkg.bat
-    - name: Install dependencies
+    - name: Customize vcpkg
       shell: bash
       run: |
         cp -r ports/discord-rpc-payload vcpkg/ports/discord-rpc-payload
+        echo "set(VCPKG_PLATFORM_TOOLSET v141)" >> vcpkg/triplets/x86-windows-static.cmake
+    - name: Install dependencies
+      shell: bash
+      run: |
         cd vcpkg
         ./vcpkg install --triplet x86-windows-static \
           lua[cpp] \
