@@ -7,14 +7,17 @@ jobs:
     - uses: actions/checkout@v1
       with:
         fetch-depth: 1
+    - name: Install APT prerequisities
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y yasm libsndio-dev libasound2-dev libpulse-dev
     - name: Install vcpkg
       run: |
         git clone --depth=1 https://github.com/Microsoft/vcpkg.git
         cd vcpkg
         ./bootstrap-vcpkg.sh
-    - name: Install dependencies
+    - name: Install vcpkg dependencies
       run: |
-        sudo apt-get install -y yasm libsndio-dev libasound2-dev libpulse-dev
         cp -r ports/discord-rpc-payload vcpkg/ports/discord-rpc-payload
         cp -r ports/sdl2-mixer-fixdynamic vcpkg/ports/sdl2-mixer-fixdynamic
         cd vcpkg

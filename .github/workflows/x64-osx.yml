@@ -16,7 +16,7 @@ jobs:
             https://raw.githubusercontent.com/edo9300/ygopro/master/travis/get-osx-sdk.sh
           chmod +x get-osx-sdk.sh
           ./get-osx-sdk.sh $MACOSX_DEPLOYMENT_TARGET
-      - name: Install dependencies from Homebrew
+      - name: Install Homebrew prerequisites
         run: |
           brew update
           brew install dos2unix p7zip gpatch yasm
@@ -42,19 +42,19 @@ jobs:
           git clone --depth=1 https://github.com/Microsoft/vcpkg.git
           cd vcpkg
           ./bootstrap-vcpkg.sh
-      - name: Install SDL2
+      - name: Install SDL2 from vcpkg
         env:
           SDKROOT: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
         run: |
           cd vcpkg
           ./vcpkg install sdl2
-      - name: Install dependencies
+      - name: Install vcpkg dependencies
         run: |
           cp -r ports/discord-rpc-payload vcpkg/ports/discord-rpc-payload
           cp -r ports/sdl2-mixer-fixdynamic vcpkg/ports/sdl2-mixer-fixdynamic
           cd vcpkg
           ./vcpkg install \
-            libevent[thread]
+            libevent[thread] \
             sdl2-mixer-fixdynamic[libflac,mpg123,libvorbis] \
             discord-rpc-payload
       - name: 7-Zip binaries
