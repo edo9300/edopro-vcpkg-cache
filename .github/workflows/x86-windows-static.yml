@@ -29,7 +29,7 @@ jobs:
       shell: bash
       run: |
         cd vcpkg
-        "$PROGRAMFILES/7-Zip/7z.exe" a -tzip installed_x86-windows-static.zip installed
+        "$PROGRAMFILES/7-Zip/7z.exe" a -tzip installed_x86-windows-static.zip installed scripts .vcpkg-root vcpkg.exe
     - name: Upload binaries to GitHub
       uses: actions/upload-release-asset@v1.0.1
       env:
