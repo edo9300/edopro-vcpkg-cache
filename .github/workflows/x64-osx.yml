@@ -54,7 +54,7 @@ jobs:
           cp -r ports/sdl2-mixer-fixdynamic vcpkg/ports/sdl2-mixer-fixdynamic
           cd vcpkg
           ./vcpkg install \
-            libevent[thread] \
+            libevent \
             sdl2-mixer-fixdynamic[libflac,mpg123,libvorbis] \
             discord-rpc-payload
       - name: 7-Zip binaries

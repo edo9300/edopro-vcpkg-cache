@@ -25,7 +25,7 @@ jobs:
         cd vcpkg
         ./vcpkg install --triplet x86-windows-static \
           lua[cpp] \
-          libevent[thread] sqlite3 \
+          libevent sqlite3 \
           bzip2 libjpeg-turbo libpng zlib \
           curl libgit2 fmt nlohmann-json \
           sdl2-mixer-fixdynamic[libflac,mpg123,libvorbis] \
