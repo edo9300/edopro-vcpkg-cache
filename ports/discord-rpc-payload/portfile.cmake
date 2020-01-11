@@ -5,8 +5,8 @@ include(vcpkg_common_functions)
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO edo9300/discord-rpc
-    REF 7fb7e2e9dc9ed48111a4dc41e8add0cc052144fe
-    SHA512 24f8a6d824d40dc1bc410469b87b87e9b92062d1fd69994a8913650958060ae251901a049f939b9ad16b0eedc723fefe33dc834056e89b74fe6ee01571cdcab5
+    REF 1291afe7a7a466695e5db8c277c6c6d4ac9316a6
+    SHA512 9f8163a18d4a70ebc403e6e3ac4b1f844f8a9506c1920cd02de3d5009e9ab7a7d4ab29b0153fcab1b293d1e3719938a484e9068fa89261c5bd6288c3f169963c
     HEAD_REF master
     PATCHES disable-downloading.patch
 )
