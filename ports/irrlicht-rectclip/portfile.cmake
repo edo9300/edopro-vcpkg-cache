@@ -12,7 +12,7 @@ vcpkg_extract_source_archive_ex(
     REF "1.8.4"
     # [NO_REMOVE_ONE_LEVEL]
     # [WORKING_DIRECTORY <${CURRENT_BUILDTREES_DIR}/src>]
-    # [PATCHES <a.patch>...]
+    PATCHES irrlicht-rectclip.patch
 )
 
 # Copy CMakeLists.txt to the source, because Irrlicht does not have one.
