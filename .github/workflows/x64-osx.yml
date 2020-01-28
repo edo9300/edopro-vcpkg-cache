@@ -24,11 +24,11 @@ jobs:
         run: |
           curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name \
             https://raw.githubusercontent.com/edo9300/ygopro/master/irrlicht/irrlicht-macOS.patch
-          unix2dos irrlicht-macOS.patch
           curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name \
             https://downloads.sourceforge.net/irrlicht/irrlicht-1.8.4.zip
           7z x irrlicht-1.8.4.zip
           cd irrlicht-1.8.4
+          find include source -type f -print0 | xargs -0 dos2unix
           /usr/local/opt/gpatch/bin/patch -p0 --binary -i ../irrlicht-macOS.patch
           xcodebuild -project source/Irrlicht/MacOSX/MacOSX.xcodeproj -configuration Release -target libIrrlicht.a SYMROOT=build -sdk $SDKROOT -parallelizeTargets
           mkdir -p ../irrlicht/lib
