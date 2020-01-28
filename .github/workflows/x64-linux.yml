@@ -10,21 +10,25 @@ jobs:
     - name: Install APT prerequisities
       run: |
         sudo apt-get update
-        sudo apt-get install -y yasm libasound2-dev libpulse-dev
+        sudo apt-get install -y yasm libgl1-mesa-dev libasound2-dev libpulse-dev
     - name: Install vcpkg
       run: |
         git clone --depth=1 https://github.com/Microsoft/vcpkg.git
         cd vcpkg
         ./bootstrap-vcpkg.sh
+    - name: Download irrlicht patch
+      run: |
+        cd ports/irrlicht-rectclip
+        curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name \
+          https://raw.githubusercontent.com/edo9300/ygopro/master/irrlicht/irrlicht-rectclip.patch
     - name: Install vcpkg dependencies
       run: |
-        cp -r ports/discord-rpc-payload vcpkg/ports/discord-rpc-payload
-        cp -r ports/sdl2-mixer-fixdynamic vcpkg/ports/sdl2-mixer-fixdynamic
         cd vcpkg
-        ./vcpkg install \
+        ./vcpkg install --overlay-ports=../ports \
           libevent sqlite3 \
+          irrlicht-rectclip \
           curl libgit2 fmt nlohmann-json \
-          sdl2-mixer-fixdynamic[libflac,mpg123,libvorbis] \
+          sdl2-mixer[libflac,mpg123,libvorbis] \
           discord-rpc-payload
     - name: 7-Zip binaries
       run: |
