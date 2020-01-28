@@ -47,7 +47,7 @@ vcpkg_configure_cmake(
 
 vcpkg_install_cmake()
 
-vcpkg_fixup_cmake_targets()
+vcpkg_fixup_cmake_targets(TARGET_PATH share/irrlicht)
 
 if(BUILD_TOOLS)
     vcpkg_copy_tool_dependencies(${CURRENT_PACKAGES_DIR}/tools/irrlicht-rectclip/)
