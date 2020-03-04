@@ -21,7 +21,7 @@ jobs:
       shell: bash
       run: |
         cd vcpkg
-        ./vcpkg install --triplet x86-windows-static asio fmt libgit2 nlohmann-json sqlite3
+        ./vcpkg install --triplet x86-windows-static asio fmt libgit2 nlohmann-json spdlog sqlite3
     - name: Zip binaries
       shell: bash
       run: |

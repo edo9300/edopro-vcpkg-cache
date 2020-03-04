@@ -15,7 +15,7 @@ jobs:
     - name: Install vcpkg dependencies
       run: |
         cd vcpkg
-        ./vcpkg install asio fmt libgit2 nlohmann-json sqlite3
+        ./vcpkg install asio fmt libgit2 nlohmann-json spdlog sqlite3
     - name: 7-Zip binaries
       run: |
         cd vcpkg
