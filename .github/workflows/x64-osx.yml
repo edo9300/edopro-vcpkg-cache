@@ -19,7 +19,7 @@ jobs:
       - name: Install Homebrew prerequisites
         run: |
           brew update
-          brew install dos2unix p7zip gpatch yasm
+          brew install p7zip yasm
       - name: Build patched Irrlicht
         run: |
           curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name \
