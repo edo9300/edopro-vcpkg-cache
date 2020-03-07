@@ -16,11 +16,6 @@ jobs:
         git clone --depth=1 https://github.com/Microsoft/vcpkg.git
         cd vcpkg
         ./bootstrap-vcpkg.sh
-    - name: Download irrlicht patch
-      run: |
-        cd ports/irrlicht-rectclip
-        curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name \
-          https://raw.githubusercontent.com/edo9300/ygopro/master/irrlicht/irrlicht-rectclip.patch
     - name: Install vcpkg dependencies
       run: |
         cd vcpkg

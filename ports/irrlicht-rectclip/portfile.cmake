@@ -1,9 +1,9 @@
 include(vcpkg_common_functions)
 
 vcpkg_download_distfile(ARCHIVE
-    URLS "https://downloads.sourceforge.net/project/irrlicht/Irrlicht%20SDK/1.8/1.8.4/irrlicht-1.8.4.zip"
+    URLS "https://github.com/edo9300/irrlicht1-8-4/archive/master.zip"
     FILENAME "irrlicht-1.8.4.zip"
-    SHA512 de69ddd2c6bc80a1b27b9a620e3697b1baa552f24c7d624076d471f3aecd9b15f71dce3b640811e6ece20f49b57688d428e3503936a7926b3e3b0cc696af98d1
+    SHA512 4bca0128e37c9a513ae69b75c4f1c8a2199c67443c2ff7b83b29d3dfbf59406a51d996e8ff2919681853c8cbb09a68c766560b58cad4ba3781cbaca5a9651998
 )
 
 vcpkg_extract_source_archive_ex(
@@ -12,7 +12,6 @@ vcpkg_extract_source_archive_ex(
     REF "1.8.4"
     # [NO_REMOVE_ONE_LEVEL]
     # [WORKING_DIRECTORY <${CURRENT_BUILDTREES_DIR}/src>]
-    PATCHES irrlicht-rectclip.patch
 )
 
 # Copy CMakeLists.txt to the source, because Irrlicht does not have one.
