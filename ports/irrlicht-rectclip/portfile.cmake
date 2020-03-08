@@ -3,7 +3,7 @@ include(vcpkg_common_functions)
 vcpkg_download_distfile(ARCHIVE
     URLS "https://github.com/edo9300/irrlicht1-8-4/archive/master.zip"
     FILENAME "irrlicht-1.8.4.zip"
-    SHA512 ed15db318906852c29e4ca2d648ec0c0cb2da395bfee54c6ddc315af7cd2a93b8974d7804ab905280a1110bfeb004963c871fc37e8a808e3f527ccd052f5c4cb
+    SHA512 29df4f30861dd9bc6bd89f2024f85643be762d39000ec94661a912ac291d87ece58a0e2e0e291ca426eac993d0cfc9603e48fc420c53c76c86d39df241498d95
 )
 
 vcpkg_extract_source_archive_ex(
