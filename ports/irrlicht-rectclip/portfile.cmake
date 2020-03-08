@@ -1,17 +1,11 @@
 include(vcpkg_common_functions)
 
-vcpkg_download_distfile(ARCHIVE
-    URLS "https://github.com/edo9300/irrlicht1-8-4/archive/master.zip"
-    FILENAME "irrlicht-1.8.4.zip"
-    SHA512 29df4f30861dd9bc6bd89f2024f85643be762d39000ec94661a912ac291d87ece58a0e2e0e291ca426eac993d0cfc9603e48fc420c53c76c86d39df241498d95
-)
-
-vcpkg_extract_source_archive_ex(
+vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
-    ARCHIVE ${ARCHIVE}
-    REF "1.8.4"
-    # [NO_REMOVE_ONE_LEVEL]
-    # [WORKING_DIRECTORY <${CURRENT_BUILDTREES_DIR}/src>]
+    REPO edo9300/irrlicht1-8-4
+    REF 68049587fdcbd8d025c6a4f4307a4b6fde85cc84
+    SHA512 fe060280d6df8afdc8ab28af01e348e682696920df47a817d4ae01a36c9f817246d242b0c1fcf719532a1b74247303732fdfacd1227f17bb9cf828b8f5e4d487
+    HEAD_REF master
 )
 
 # Copy CMakeLists.txt to the source, because Irrlicht does not have one.
