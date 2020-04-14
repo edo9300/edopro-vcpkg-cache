@@ -115,7 +115,7 @@ jobs:
       run: |
         cd vcpkg
         ./vcpkg install --overlay-ports=../ports \
-          libevent \
+          libevent libgit2 \
           sdl2-mixer[libflac,mpg123,libvorbis] \
           discord-rpc-payload
     - name: 7-Zip binaries
