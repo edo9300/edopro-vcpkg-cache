@@ -1,7 +1,50 @@
-name: vcpkg (x64-osx)
+name: EDOPro dependencies
 on: push
 jobs:
-  build:
+  x86-windows-static:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+    - name: Install vcpkg
+      shell: powershell
+      run: |
+        git clone --depth=1 https://github.com/Microsoft/vcpkg.git
+        cd vcpkg
+        .\bootstrap-vcpkg.bat
+    - name: Customize vcpkg
+      shell: bash
+      run: |
+        echo -e "\nset(VCPKG_PLATFORM_TOOLSET v141)" >> vcpkg/triplets/community/x86-windows-static.cmake
+    - name: Install dependencies
+      shell: bash
+      run: |
+        cd vcpkg
+        ./vcpkg install --triplet x86-windows-static \
+          --overlay-ports=../ports \
+          lua[cpp] \
+          libevent sqlite3 \
+          bzip2 libjpeg-turbo libpng zlib \
+          curl libgit2 fmt nlohmann-json \
+          sdl2-mixer[libflac,mpg123,libvorbis] \
+          discord-rpc-payload
+    - name: Zip binaries
+      shell: bash
+      run: |
+        cd vcpkg
+        "$PROGRAMFILES/7-Zip/7z.exe" a -tzip installed_x86-windows-static.zip installed scripts .vcpkg-root vcpkg.exe
+    - name: Upload binaries to GitHub
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: https://uploads.github.com/repos/kevinlul/edopro-vcpkg-cache/releases/22193553/assets{?name,label}
+        asset_path: ./vcpkg/installed_x86-windows-static.zip
+        asset_name: installed_x86-windows-static.zip
+        asset_content_type: application/zip
+
+  x64-osx:
     runs-on: macos-latest
     env:
       MACOSX_DEPLOYMENT_TARGET: 10.11
@@ -67,3 +110,41 @@ jobs:
           asset_path: ./vcpkg/installed_x64-osx.7z
           asset_name: installed_x64-osx.7z
           asset_content_type: application/x-7z-compressed
+
+  x64-linux:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+    - name: Install APT prerequisities
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y yasm libgl1-mesa-dev libasound2-dev libpulse-dev
+    - name: Install vcpkg
+      run: |
+        git clone --depth=1 https://github.com/Microsoft/vcpkg.git
+        cd vcpkg
+        ./bootstrap-vcpkg.sh
+    - name: Install vcpkg dependencies
+      run: |
+        cd vcpkg
+        ./vcpkg install --overlay-ports=../ports \
+          libevent sqlite3 \
+          irrlicht-rectclip \
+          curl libgit2 fmt nlohmann-json \
+          sdl2-mixer[libflac,mpg123,libvorbis] \
+          discord-rpc-payload
+    - name: 7-Zip binaries
+      run: |
+        cd vcpkg
+        7z a installed_x64-linux.7z installed scripts .vcpkg-root
+    - name: Upload binaries to GitHub
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: https://uploads.github.com/repos/kevinlul/edopro-vcpkg-cache/releases/22193553/assets{?name,label}
+        asset_path: ./vcpkg/installed_x64-linux.7z
+        asset_name: installed_x64-linux.7z
+        asset_content_type: application/x-7z-compressed
