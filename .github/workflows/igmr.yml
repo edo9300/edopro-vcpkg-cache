@@ -27,12 +27,20 @@ jobs:
       run: |
         cd vcpkg
         "$PROGRAMFILES/7-Zip/7z.exe" a igmr_x86-windows-static.7z installed scripts .vcpkg-root vcpkg.exe
+    - name: Get upload endpoint
+      id: get_endpoint
+      if: startsWith(github.ref, 'refs/tags/')
+      shell: bash
+      run: |
+        curl -o latest.json https://api.github.com/repos/kevinlul/edopro-vcpkg-cache/releases/latest
+        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
     - name: Upload binaries to GitHub
+      if: startsWith(github.ref, 'refs/tags/')
       uses: actions/upload-release-asset@v1.0.1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: https://uploads.github.com/repos/kevinlul/edopro-vcpkg-cache/releases/22193553/assets{?name,label}
+        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
         asset_path: ./vcpkg/igmr_x86-windows-static.7z
         asset_name: igmr_x86-windows-static.7z
         asset_content_type: application/x-7z-compressed
@@ -43,44 +51,51 @@ jobs:
       MACOSX_DEPLOYMENT_TARGET: 10.11
       SDKROOT: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk
     steps:
-      - uses: actions/checkout@v1
-        with:
-          fetch-depth: 1
-      - name: Install 10.11 SDK
-        run: |
-          curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name \
-            https://raw.githubusercontent.com/edo9300/ygopro/master/travis/get-osx-sdk.sh
-          chmod +x get-osx-sdk.sh
-          ./get-osx-sdk.sh $MACOSX_DEPLOYMENT_TARGET
-      - name: Install Homebrew prerequisites
-        run: |
-          brew update
-          brew install p7zip
-      - name: Install vcpkg
-        env:
-          MACOSX_DEPLOYMENT_TARGET: 10.15
-          SDKROOT: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
-        run: |
-          git clone --depth=1 https://github.com/Microsoft/vcpkg.git
-          cd vcpkg
-          ./bootstrap-vcpkg.sh
-      - name: Install vcpkg dependencies
-        run: |
-          cd vcpkg
-          ./vcpkg install --overlay-ports=../ports asio fmt libgit2 nlohmann-json spdlog sqlite3
-      - name: 7-Zip binaries
-        run: |
-          cd vcpkg
-          7z a igmr_x64-osx.7z installed scripts .vcpkg-root
-      - name: Upload binaries to GitHub
-        uses: actions/upload-release-asset@v1.0.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: https://uploads.github.com/repos/kevinlul/edopro-vcpkg-cache/releases/22193553/assets{?name,label}
-          asset_path: ./vcpkg/igmr_x64-osx.7z
-          asset_name: igmr_x64-osx.7z
-          asset_content_type: application/x-7z-compressed
+    - uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+    - name: Install 10.11 SDK
+      run: |
+        curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name \
+          https://raw.githubusercontent.com/edo9300/ygopro/master/travis/get-osx-sdk.sh
+        chmod +x get-osx-sdk.sh
+        ./get-osx-sdk.sh $MACOSX_DEPLOYMENT_TARGET
+    - name: Install Homebrew prerequisites
+      run: |
+        brew update
+        brew install p7zip
+    - name: Install vcpkg
+      env:
+        MACOSX_DEPLOYMENT_TARGET: 10.15
+        SDKROOT: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
+      run: |
+        git clone --depth=1 https://github.com/Microsoft/vcpkg.git
+        cd vcpkg
+        ./bootstrap-vcpkg.sh
+    - name: Install vcpkg dependencies
+      run: |
+        cd vcpkg
+        ./vcpkg install --overlay-ports=../ports asio fmt libgit2 nlohmann-json spdlog sqlite3
+    - name: 7-Zip binaries
+      run: |
+        cd vcpkg
+        7z a igmr_x64-osx.7z installed scripts .vcpkg-root
+    - name: Get upload endpoint
+      id: get_endpoint
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        curl -o latest.json https://api.github.com/repos/kevinlul/edopro-vcpkg-cache/releases/latest
+        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
+    - name: Upload binaries to GitHub
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        asset_path: ./vcpkg/igmr_x64-osx.7z
+        asset_name: igmr_x64-osx.7z
+        asset_content_type: application/x-7z-compressed
 
   x64-linux:
     runs-on: ubuntu-18.04
@@ -101,12 +116,19 @@ jobs:
       run: |
         cd vcpkg
         7z a igmr_x64-linux.7z installed scripts .vcpkg-root
+    - name: Get upload endpoint
+      id: get_endpoint
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        curl -o latest.json https://api.github.com/repos/kevinlul/edopro-vcpkg-cache/releases/latest
+        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
     - name: Upload binaries to GitHub
+      if: startsWith(github.ref, 'refs/tags/')
       uses: actions/upload-release-asset@v1.0.1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: https://uploads.github.com/repos/kevinlul/edopro-vcpkg-cache/releases/22193553/assets{?name,label}
+        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
         asset_path: ./vcpkg/igmr_x64-linux.7z
         asset_name: igmr_x64-linux.7z
         asset_content_type: application/x-7z-compressed

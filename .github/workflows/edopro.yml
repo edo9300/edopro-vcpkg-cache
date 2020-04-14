@@ -1,6 +1,20 @@
 name: EDOPro dependencies
 on: push
 jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Create release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: ${{ github.ref }}
+        draft: false
+        prerelease: false
+
   x86-windows-static:
     runs-on: windows-latest
     steps:
@@ -34,12 +48,20 @@ jobs:
       run: |
         cd vcpkg
         "$PROGRAMFILES/7-Zip/7z.exe" a -tzip installed_x86-windows-static.zip installed scripts .vcpkg-root vcpkg.exe
+    - name: Get upload endpoint
+      id: get_endpoint
+      if: startsWith(github.ref, 'refs/tags/')
+      shell: bash
+      run: |
+        curl -o latest.json https://api.github.com/repos/kevinlul/edopro-vcpkg-cache/releases/latest
+        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
     - name: Upload binaries to GitHub
+      if: startsWith(github.ref, 'refs/tags/')
       uses: actions/upload-release-asset@v1.0.1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: https://uploads.github.com/repos/kevinlul/edopro-vcpkg-cache/releases/22193553/assets{?name,label}
+        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
         asset_path: ./vcpkg/installed_x86-windows-static.zip
         asset_name: installed_x86-windows-static.zip
         asset_content_type: application/zip
@@ -50,66 +72,73 @@ jobs:
       MACOSX_DEPLOYMENT_TARGET: 10.11
       SDKROOT: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk
     steps:
-      - uses: actions/checkout@v1
-        with:
-          fetch-depth: 1
-      - name: Install 10.11 SDK
-        run: |
-          curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name \
-            https://raw.githubusercontent.com/edo9300/ygopro/master/travis/get-osx-sdk.sh
-          chmod +x get-osx-sdk.sh
-          ./get-osx-sdk.sh $MACOSX_DEPLOYMENT_TARGET
-      - name: Install Homebrew prerequisites
-        run: |
-          brew update
-          brew install p7zip yasm
-      - name: Build patched Irrlicht
-        run: |
-          curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name \
-            https://raw.githubusercontent.com/edo9300/ygopro/master/irrlicht/irrlicht-macOS.patch
-          curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name \
-            https://github.com/edo9300/irrlicht1-8-4/archive/master.zip
-          7z x irrlicht1-8-4-master.zip
-          cd irrlicht1-8-4-master
-          xcodebuild -project source/Irrlicht/MacOSX/MacOSX.xcodeproj -configuration Release -target libIrrlicht.a SYMROOT=build -sdk $SDKROOT -parallelizeTargets
-          mkdir -p ../irrlicht/lib
-          cp -r include ../irrlicht/include
-          cp source/Irrlicht/MacOSX/build/Release/libIrrlicht.a ../irrlicht/lib
-      - name: Install vcpkg
-        env:
-          MACOSX_DEPLOYMENT_TARGET: 10.15
-          SDKROOT: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
-        run: |
-          git clone --depth=1 https://github.com/Microsoft/vcpkg.git
-          cd vcpkg
-          ./bootstrap-vcpkg.sh
-      - name: Install SDL2 from vcpkg
-        env:
-          SDKROOT: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
-        run: |
-          cd vcpkg
-          ./vcpkg install sdl2
-      - name: Install vcpkg dependencies
-        run: |
-          cd vcpkg
-          ./vcpkg install --overlay-ports=../ports \
-            libevent \
-            sdl2-mixer[libflac,mpg123,libvorbis] \
-            discord-rpc-payload
-      - name: 7-Zip binaries
-        run: |
-          mv irrlicht vcpkg
-          cd vcpkg
-          7z a installed_x64-osx.7z installed scripts .vcpkg-root irrlicht
-      - name: Upload binaries to GitHub
-        uses: actions/upload-release-asset@v1.0.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: https://uploads.github.com/repos/kevinlul/edopro-vcpkg-cache/releases/22193553/assets{?name,label}
-          asset_path: ./vcpkg/installed_x64-osx.7z
-          asset_name: installed_x64-osx.7z
-          asset_content_type: application/x-7z-compressed
+    - uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+    - name: Install 10.11 SDK
+      run: |
+        curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name \
+          https://raw.githubusercontent.com/edo9300/ygopro/master/travis/get-osx-sdk.sh
+        chmod +x get-osx-sdk.sh
+        ./get-osx-sdk.sh $MACOSX_DEPLOYMENT_TARGET
+    - name: Install Homebrew prerequisites
+      run: |
+        brew update
+        brew install p7zip yasm
+    - name: Build patched Irrlicht
+      run: |
+        curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name \
+          https://raw.githubusercontent.com/edo9300/ygopro/master/irrlicht/irrlicht-macOS.patch
+        curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name \
+          https://github.com/edo9300/irrlicht1-8-4/archive/master.zip
+        7z x irrlicht1-8-4-master.zip
+        cd irrlicht1-8-4-master
+        xcodebuild -project source/Irrlicht/MacOSX/MacOSX.xcodeproj -configuration Release -target libIrrlicht.a SYMROOT=build -sdk $SDKROOT -parallelizeTargets
+        mkdir -p ../irrlicht/lib
+        cp -r include ../irrlicht/include
+        cp source/Irrlicht/MacOSX/build/Release/libIrrlicht.a ../irrlicht/lib
+    - name: Install vcpkg
+      env:
+        MACOSX_DEPLOYMENT_TARGET: 10.15
+        SDKROOT: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
+      run: |
+        git clone --depth=1 https://github.com/Microsoft/vcpkg.git
+        cd vcpkg
+        ./bootstrap-vcpkg.sh
+    - name: Install SDL2 from vcpkg
+      env:
+        SDKROOT: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
+      run: |
+        cd vcpkg
+        ./vcpkg install sdl2
+    - name: Install vcpkg dependencies
+      run: |
+        cd vcpkg
+        ./vcpkg install --overlay-ports=../ports \
+          libevent \
+          sdl2-mixer[libflac,mpg123,libvorbis] \
+          discord-rpc-payload
+    - name: 7-Zip binaries
+      run: |
+        mv irrlicht vcpkg
+        cd vcpkg
+        7z a installed_x64-osx.7z installed scripts .vcpkg-root irrlicht
+    - name: Get upload endpoint
+      id: get_endpoint
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        curl -o latest.json https://api.github.com/repos/kevinlul/edopro-vcpkg-cache/releases/latest
+        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
+    - name: Upload binaries to GitHub
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        asset_path: ./vcpkg/installed_x64-osx.7z
+        asset_name: installed_x64-osx.7z
+        asset_content_type: application/x-7z-compressed
 
   x64-linux:
     runs-on: ubuntu-18.04
@@ -139,12 +168,19 @@ jobs:
       run: |
         cd vcpkg
         7z a installed_x64-linux.7z installed scripts .vcpkg-root
+    - name: Get upload endpoint
+      id: get_endpoint
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        curl -o latest.json https://api.github.com/repos/kevinlul/edopro-vcpkg-cache/releases/latest
+        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
     - name: Upload binaries to GitHub
+      if: startsWith(github.ref, 'refs/tags/')
       uses: actions/upload-release-asset@v1.0.1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: https://uploads.github.com/repos/kevinlul/edopro-vcpkg-cache/releases/22193553/assets{?name,label}
+        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
         asset_path: ./vcpkg/installed_x64-linux.7z
         asset_name: installed_x64-linux.7z
         asset_content_type: application/x-7z-compressed
