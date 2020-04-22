@@ -17,6 +17,7 @@ jobs:
 
   x86-windows-static:
     runs-on: windows-latest
+    needs: create-release
     steps:
     - uses: actions/checkout@v1
       with:
@@ -68,6 +69,7 @@ jobs:
 
   x64-osx:
     runs-on: macos-latest
+    needs: create-release
     env:
       MACOSX_DEPLOYMENT_TARGET: 10.11
       SDKROOT: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk
@@ -142,6 +144,7 @@ jobs:
 
   x64-linux:
     runs-on: ubuntu-18.04
+    needs: create-release
     steps:
     - uses: actions/checkout@v1
       with:
