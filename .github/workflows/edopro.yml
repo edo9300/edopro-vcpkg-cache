@@ -53,7 +53,7 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       shell: bash
       run: |
-        curl -o latest.json https://api.github.com/repos/kevinlul/edopro-vcpkg-cache/releases/latest
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/kevinlul/edopro-vcpkg-cache/releases/latest
         echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
     - name: Upload binaries to GitHub
       if: startsWith(github.ref, 'refs/tags/')
@@ -127,7 +127,7 @@ jobs:
       id: get_endpoint
       if: startsWith(github.ref, 'refs/tags/')
       run: |
-        curl -o latest.json https://api.github.com/repos/kevinlul/edopro-vcpkg-cache/releases/latest
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/kevinlul/edopro-vcpkg-cache/releases/latest
         echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
     - name: Upload binaries to GitHub
       if: startsWith(github.ref, 'refs/tags/')
@@ -172,7 +172,7 @@ jobs:
       id: get_endpoint
       if: startsWith(github.ref, 'refs/tags/')
       run: |
-        curl -o latest.json https://api.github.com/repos/kevinlul/edopro-vcpkg-cache/releases/latest
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/kevinlul/edopro-vcpkg-cache/releases/latest
         echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
     - name: Upload binaries to GitHub
       if: startsWith(github.ref, 'refs/tags/')
