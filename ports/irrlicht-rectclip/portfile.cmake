@@ -3,8 +3,8 @@ include(vcpkg_common_functions)
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO edo9300/irrlicht1-8-4
-    REF fca2e561ee7aec4e44e559168f1ff2dcaf6d5e57
-    SHA512 c62a91ec891f9648458c21efb67acf0ad127ebdb57cb2a9cf02494f6f55b2b8a7c4702a9a25793184243d15ded0eebc6e2faa7e87549dc842e92711f9da0efa3
+    REF 914cbb35142f8e8bd1659d177bbe552e14fe78f1
+    SHA512 927cae0b11694815f969bee1c8bd27590ef00a24cb162902caeb9bae80e21414fdd105086c95c6222b3763605b51f81e7e42c3054ff5a10eef345d11ddade7b3
     HEAD_REF master
 )
 
