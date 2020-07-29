@@ -41,7 +41,7 @@ jobs:
           lua[cpp] \
           libevent sqlite3 \
           bzip2 libjpeg-turbo libpng zlib \
-          curl openssl libgit2 fmt nlohmann-json \
+          curl-win32openssl[openssl] openssl libgit2-win32openssl[openssl] fmt nlohmann-json \
           sdl2-mixer[libflac,mpg123,libvorbis] \
           discord-rpc-payload
     - name: Zip binaries
