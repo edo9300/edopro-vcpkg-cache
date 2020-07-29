@@ -12,15 +12,15 @@ Feature: non-http
 Description: Enables protocols beyond HTTP/HTTPS/HTTP2
 
 Feature: http2
-Build-Depends: nghttp2, curl[core,ssl]
+Build-Depends: nghttp2, curl-win32openssl[core,ssl]
 Description: HTTP2 support
 
 Feature: ssl
-Build-Depends: curl[core,openssl] (!osx), curl[core,sectransp] (osx)
+Build-Depends: curl-win32openssl[core,openssl] (!osx), curl-win32openssl[core,sectransp] (osx)
 Description: Default SSL backend
 
 Feature: ssh
-Build-Depends: curl[core,openssl], libssh2, curl[core,non-http]
+Build-Depends: curl-win32openssl[core,openssl], libssh2, curl-win32openssl[core,non-http]
 Description: SSH support via libssh2
 
 # SSL backends
@@ -30,7 +30,7 @@ Description: SSL support (OpenSSL)
 
 Feature: winssl
 Description: SSL support (Secure Channel / "WinSSL")
-Build-Depends: curl[core,sspi]
+Build-Depends: curl-win32openssl[core,sspi]
 
 Feature: mbedtls
 Build-Depends: mbedtls
