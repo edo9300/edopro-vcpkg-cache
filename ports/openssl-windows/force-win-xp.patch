@@ -1,0 +1,14 @@
+diff --git a/crypto/rand/rand_win.c b/crypto/rand/rand_win.c
+index 9036546008..5fd8c8743d 100644
+--- a/crypto/rand/rand_win.c
++++ b/crypto/rand/rand_win.c
+@@ -18,6 +18,9 @@
+ # endif
+ 
+ # include <windows.h>
++
++#undef _WIN32_WINNT
++
+ /* On Windows Vista or higher use BCrypt instead of the legacy CryptoAPI */
+ # if defined(_MSC_VER) && _MSC_VER > 1500 /* 1500 = Visual Studio 2008 */ \
+      && defined(_WIN32_WINNT) && _WIN32_WINNT >= 0x0600
