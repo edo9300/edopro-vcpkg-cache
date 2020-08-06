@@ -13,6 +13,7 @@ vcpkg_from_github(
         0008_fix_tools_path.patch
         0009_fix_openssl_config.patch
         0010_fix_othertests_cmake.patch
+		0011_ensure_winxp_compat.patch
 )
 
 string(COMPARE EQUAL "${VCPKG_LIBRARY_LINKAGE}" "static" CURL_STATICLIB)
