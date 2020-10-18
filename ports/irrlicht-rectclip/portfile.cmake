@@ -3,9 +3,9 @@ include(vcpkg_common_functions)
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO edo9300/irrlicht1-8-4
-    REF 324946fb6b3fe0687f3c3eb8569e469f28f4fe49
-    SHA512 b66f670494b9f54be993ab571714b2ef4afbf82fc6fcce8c07054ef4b08f62bc59af4b315d0a0ce1a4a510109c0f68b12c026c8ce7da3cd81e3756e0677a1c91
-    HEAD_REF shift
+    REF ba3dd90adcebd9aaff7f0b4069866867fb009198
+    SHA512 585d1bbe3c77937c610a7f47005ef5a9fcaae4362c7c65a1daedeaa81e7d0c487ab3a3bec478b9181a9eb480614de6ae6410621fdb3eb570e50bf1abb29c08d3
+    HEAD_REF master
 )
 
 # Copy CMakeLists.txt to the source, because Irrlicht does not have one.
