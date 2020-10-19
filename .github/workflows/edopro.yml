@@ -31,10 +31,8 @@ jobs:
     - name: Customize vcpkg
       shell: bash
       run: |
-        echo -e "\nset(VCPKG_PLATFORM_TOOLSET v141)" >> vcpkg/triplets/community/x86-windows-static.cmake
+        echo -e "\nset(VCPKG_PLATFORM_TOOLSET v142)" >> vcpkg/triplets/community/x86-windows-static.cmake
     - name: Install dependencies
-      env:
-        VCPKG_VISUAL_STUDIO_PATH: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise"
       shell: bash
       run: |
         cd vcpkg
