@@ -16,7 +16,7 @@ jobs:
         prerelease: false
 
   x86-windows-static:
-    runs-on: windows-latest
+    runs-on: windows-2016
     needs: create-release
     steps:
     - uses: actions/checkout@v1
@@ -31,7 +31,7 @@ jobs:
     - name: Customize vcpkg
       shell: bash
       run: |
-        echo -e "\nset(VCPKG_PLATFORM_TOOLSET v142)" >> vcpkg/triplets/community/x86-windows-static.cmake
+        echo -e "\nset(VCPKG_PLATFORM_TOOLSET v141)" >> vcpkg/triplets/community/x86-windows-static.cmake
     - name: Install dependencies
       shell: bash
       run: |
