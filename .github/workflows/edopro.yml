@@ -42,7 +42,7 @@ jobs:
           libevent sqlite3 \
           bzip2 libjpeg-turbo libpng zlib \
           curl-win32openssl[openssl] openssl libgit2-win32openssl[openssl] fmt nlohmann-json \
-          sdl2-mixer[libflac,mpg123,libvorbis] \
+          sdl2-mixer[libflac,mpg123,libvorbis] openal-soft \
           discord-rpc-payload
     - name: Zip binaries
       shell: bash
@@ -118,7 +118,7 @@ jobs:
         cd vcpkg
         ./vcpkg install --overlay-ports=../ports \
           freetype libevent libgit2 \
-          sdl2-mixer[core,libflac,mpg123,libvorbis] \
+          sdl2-mixer[core,libflac,mpg123,libvorbis] openal-soft \
           discord-rpc-payload
     - name: 7-Zip binaries
       run: |
@@ -165,7 +165,7 @@ jobs:
           libevent sqlite3 \
           irrlicht-rectclip \
           curl libgit2 fmt nlohmann-json \
-          sdl2-mixer[libflac,mpg123,libvorbis] \
+          sdl2-mixer[libflac,mpg123,libvorbis] openal-soft \
           discord-rpc-payload
     - name: 7-Zip binaries
       run: |
