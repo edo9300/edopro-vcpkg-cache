@@ -42,7 +42,7 @@ jobs:
           libevent sqlite3 \
           bzip2 libjpeg-turbo libpng zlib \
           curl-win32openssl[openssl] openssl libgit2-win32openssl[openssl] fmt nlohmann-json \
-          sdl2-mixer[libflac,mpg123,libvorbis] openal-soft \
+          mpg123 openal-soft \
           discord-rpc-payload
     - name: Zip binaries
       shell: bash
@@ -107,18 +107,18 @@ jobs:
         git clone --depth=1 https://github.com/Microsoft/vcpkg.git
         cd vcpkg
         ./bootstrap-vcpkg.sh
-    - name: Install SDL2 from vcpkg
-      env:
-        SDKROOT: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
-      run: |
-        cd vcpkg
-        ./vcpkg install sdl2
+    # - name: Install SDL2 from vcpkg
+      # env:
+        # SDKROOT: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
+      # run: |
+        # cd vcpkg
+        # ./vcpkg install sdl2
     - name: Install vcpkg dependencies
       run: |
         cd vcpkg
         ./vcpkg install --overlay-ports=../ports \
-          freetype libevent libgit2 \
-          sdl2-mixer[core,libflac,mpg123,libvorbis] openal-soft \
+          libevent libgit2-win32openssl[openssl] \
+          mpg123 openal-soft \
           discord-rpc-payload
     - name: 7-Zip binaries
       run: |
@@ -164,8 +164,8 @@ jobs:
         ./vcpkg install --overlay-ports=../ports \
           libevent sqlite3 \
           irrlicht-rectclip \
-          curl libgit2 fmt nlohmann-json \
-          sdl2-mixer[libflac,mpg123,libvorbis] openal-soft \
+          curl libgit2-win32openssl[openssl] fmt nlohmann-json \
+          mpg123 openal-soft \
           discord-rpc-payload
     - name: 7-Zip binaries
       run: |
