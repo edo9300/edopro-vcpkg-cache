@@ -85,7 +85,7 @@ jobs:
         ./get-osx-sdk.sh $MACOSX_DEPLOYMENT_TARGET
     - name: Install Homebrew prerequisites
       run: |
-        brew update
+        brew update-reset
         brew install p7zip yasm
     - name: Build patched Irrlicht
       run: |
