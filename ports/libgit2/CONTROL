@@ -1,7 +1,7 @@
-Source: libgit2-win32openssl
+Source: libgit2
 Version: 1.0.1
 Homepage: https://github.com/libgit2/libgit2
-Build-Depends: zlib, libssh2, libgit2-win32openssl[openssl] (!uwp)
+Build-Depends: zlib, libssh2, libgit2[openssl] (!uwp)
 Description: Git linkable library
 Supports: !uwp
 
