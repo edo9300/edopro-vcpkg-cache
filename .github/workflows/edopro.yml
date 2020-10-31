@@ -71,8 +71,9 @@ jobs:
     runs-on: macos-latest
     needs: create-release
     env:
+      DEVELOPER_DIR: /Applications/Xcode_11.7.app/Contents/Developer
       MACOSX_DEPLOYMENT_TARGET: 10.11
-      SDKROOT: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk
+      SDKROOT: /Applications/Xcode_11.7.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk
     steps:
     - uses: actions/checkout@v1
       with:
