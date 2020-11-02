@@ -391,4 +391,3 @@ jobs:
         asset_path: ./installed_x64-linux.7z
         asset_name: installed_x64-linux.7z
         asset_content_type: application/x-7z-compressed
-# q
