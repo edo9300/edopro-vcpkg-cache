@@ -24,6 +24,7 @@ vcpkg_extract_source_archive_ex(
   ARCHIVE ${ARCHIVE}
   PATCHES
     force-win-xp.patch
+    ignore-default-conf.patch
 )
 
 vcpkg_find_acquire_program(NASM)

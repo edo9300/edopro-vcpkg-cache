@@ -1,0 +1,16 @@
+diff --git a/crypto/conf/conf_mod.c b/crypto/conf/conf_mod.c
+index e703d97..231fa60 100644
+--- a/crypto/conf/conf_mod.c
++++ b/crypto/conf/conf_mod.c
+@@ -120,9 +120,8 @@ int CONF_modules_load_file(const char *filename, const char *appname,
+         goto err;
+ 
+     if (filename == NULL) {
+-        file = CONF_get1_default_config_file();
+-        if (!file)
+-            goto err;
++        NCONF_free(conf);
++        return 1;
+     } else
+         file = (char *)filename;
+ 
