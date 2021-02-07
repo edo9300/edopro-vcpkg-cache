@@ -40,38 +40,31 @@ jobs:
       if: (contains(github.event.head_commit.message, '[skip-win]') != true && contains(github.event.head_commit.message, '[new]') != true)
       run: |
         curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x86-windows-static.zip'){ console.log(obj['url']) }})")"
-    - name: Install vcpkg
-      if: contains(github.event.head_commit.message, '[skip-win]') != true
-      shell: powershell
-      run: |
-        git clone --depth=1 https://github.com/Microsoft/vcpkg.git
-        cd vcpkg
-        .\bootstrap-vcpkg.bat
     - name: Customize vcpkg
       if: contains(github.event.head_commit.message, '[skip-win]') != true
       shell: bash
       run: |
-        echo -e "\nset(VCPKG_PLATFORM_TOOLSET v141)" >> vcpkg/triplets/community/x86-windows-static.cmake
+        cd $VCPKG_INSTALLATION_ROOT
+        echo -e "\nset(VCPKG_PLATFORM_TOOLSET v141)" >> triplets/community/x86-windows-static.cmake
     - name: Extract vcpkg cache
       if: (contains(github.event.head_commit.message, '[skip-win]') != true && contains(github.event.head_commit.message, '[new]') != true)
       shell: bash
       run: |
-        cd vcpkg
-        "$PROGRAMFILES/7-Zip/7z.exe" x ../installed_x86-windows-static.zip -aos
-        cd ..
+        dir=$PWD
+        cd $VCPKG_INSTALLATION_ROOT
+        "$PROGRAMFILES/7-Zip/7z.exe" x $dir/installed_x86-windows-static.zip -aos
+        cd $dir
         rm -f installed_x86-windows-static.zip
     - name: Upgrade vcpkg dependencies
       if: contains(github.event.head_commit.message, '[skip-win]') != true
       run: |
-        cd vcpkg
-        ./vcpkg upgrade --overlay-ports=../ports --no-dry-run
+        vcpkg upgrade --overlay-ports=ports --no-dry-run
     - name: Install dependencies
       if: contains(github.event.head_commit.message, '[skip-win]') != true
       shell: bash
       run: |
-        cd vcpkg
-        ./vcpkg install --triplet x86-windows-static \
-          --overlay-ports=../ports \
+        vcpkg install --triplet x86-windows-static \
+          --overlay-ports=ports \
           lua[cpp] \
           libevent sqlite3 \
           bzip2 libjpeg-turbo libpng zlib \
@@ -83,7 +76,7 @@ jobs:
       if: contains(github.event.head_commit.message, '[skip-win]') != true
       shell: bash
       run: |
-        cd vcpkg
+        cd $VCPKG_INSTALLATION_ROOT
         "$PROGRAMFILES/7-Zip/7z.exe" a -tzip installed_x86-windows-static.zip installed scripts .vcpkg-root vcpkg.exe
     - name: Get upload endpoint
       id: get_endpoint
@@ -92,6 +85,7 @@ jobs:
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/kevinlul/edopro-vcpkg-cache/releases/latest
         echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
+        echo ::set-output name=asset_path::$VCPKG_INSTALLATION_ROOT/installed_x86-windows-static.zip
     - name: Upload binaries to GitHub
       if: (contains(github.event.head_commit.message, '[skip-win]') != true && startsWith(github.ref, 'refs/tags/'))
       uses: actions/upload-release-asset@v1.0.1
@@ -99,7 +93,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
-        asset_path: ./vcpkg/installed_x86-windows-static.zip
+        asset_path: ${{ steps.get_endpoint.outputs.asset_path }}
         asset_name: installed_x86-windows-static.zip
         asset_content_type: application/zip
 
