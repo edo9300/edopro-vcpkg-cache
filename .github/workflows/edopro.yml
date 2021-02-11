@@ -169,8 +169,7 @@ jobs:
     - name: Install Homebrew prerequisites
       if: contains(github.event.head_commit.message, '[skip-osx]') != true
       run: |
-        brew update-reset
-        brew install p7zip yasm
+        brew install yasm
     - name: Extract vcpkg cache
       if: (contains(github.event.head_commit.message, '[skip-osx]') != true && contains(github.event.head_commit.message, '[new]') != true)
       run: |
