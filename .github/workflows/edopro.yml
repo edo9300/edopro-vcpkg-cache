@@ -182,18 +182,29 @@ jobs:
       if: contains(github.event.head_commit.message, '[skip-osx]') != true
       run: |
         vcpkg upgrade --overlay-ports=ports --no-dry-run
-    - name: Build patched Irrlicht
+    # - name: Build patched Irrlicht
+      # if: (contains(github.event.head_commit.message, '[skip-osx]') != true && (contains(github.event.head_commit.message, '[do-irr]') || contains(github.event.head_commit.message, '[new]')))
+      # run: |
+        # curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name \
+          # https://github.com/edo9300/irrlicht1-8-4/archive/master.zip
+        # 7z x irrlicht1-8-4-master.zip
+        # cd irrlicht1-8-4-master
+        # xcodebuild -project source/Irrlicht/MacOSX/MacOSX.xcodeproj -configuration Release -target libIrrlicht.a SYMROOT=build -sdk $SDKROOT -parallelizeTargets
+        # rm -r -f $VCPKG_INSTALLATION_ROOT/irrlicht
+        # mkdir -p ../irrlicht/lib
+        # cp -r include ../irrlicht/include
+    - name: Build patched Irrlicht 1.9
       if: (contains(github.event.head_commit.message, '[skip-osx]') != true && (contains(github.event.head_commit.message, '[do-irr]') || contains(github.event.head_commit.message, '[new]')))
       run: |
         curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name \
-          https://github.com/edo9300/irrlicht1-8-4/archive/master.zip
-        7z x irrlicht1-8-4-master.zip
-        cd irrlicht1-8-4-master
-        xcodebuild -project source/Irrlicht/MacOSX/MacOSX.xcodeproj -configuration Release -target libIrrlicht.a SYMROOT=build -sdk $SDKROOT -parallelizeTargets
+          https://github.com/edo9300/irrlicht1-8-4/archive/1.9-custom.zip
+        7z x irrlicht1-8-4-1.9-custom.zip
+        cd irrlicht1-8-4-1.9-custom
+        xcodebuild -project source/Irrlicht/Irrlicht.xcodeproj -configuration Release -target Irrlicht_OSX SYMROOT=build -sdk $SDKROOT -parallelizeTargets
         rm -r -f $VCPKG_INSTALLATION_ROOT/irrlicht
         mkdir -p ../irrlicht/lib
         cp -r include ../irrlicht/include
-        cp source/Irrlicht/MacOSX/build/Release/libIrrlicht.a ../irrlicht/lib
+        cp source/Irrlicht/build/Release/libIrrlicht.a ../irrlicht/lib
     # - name: Install SDL2 from vcpkg 
       # if: contains(github.event.head_commit.message, '[skip-osx]') != true
       # env:
