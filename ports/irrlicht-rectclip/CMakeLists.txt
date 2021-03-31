@@ -145,6 +145,7 @@ target_compile_definitions(Irrlicht
     PRIVATE NO_IRR_USE_NON_SYSTEM_JPEG_LIB_
     PRIVATE NO_IRR_COMPILE_WITH_OGLES1_
     PRIVATE NO_IRR_COMPILE_WITH_OGLES2_
+    PRIVATE NO_IRR_COMPILE_WITH_WEBGL1_
     )
 
 # Per platform config
