@@ -315,13 +315,11 @@ jobs:
         rm -f installed_x64-linux.7z
     - name: Upgrade vcpkg dependencies
       if: contains(github.event.head_commit.message, '[skip-linux]') != true
-      continue-on-error: true
       run: |
         vcpkg upgrade --overlay-ports=ports --no-dry-run
     - name: Install vcpkg dependencies
       if: contains(github.event.head_commit.message, '[skip-linux]') != true
       run: |
-        cat /usr/local/share/vcpkg/buildtrees/irrlicht-rectclip/install-x64-linux-dbg-out.log
         vcpkg install --overlay-ports=ports \
           libevent sqlite3 \
           irrlicht-rectclip \
