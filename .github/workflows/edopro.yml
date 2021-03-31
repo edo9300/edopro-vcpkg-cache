@@ -180,8 +180,10 @@ jobs:
         rm -f installed_x64-osx.7z
     - name: Upgrade vcpkg dependencies
       if: contains(github.event.head_commit.message, '[skip-osx]') != true
+      continue-on-error: true
       run: |
         vcpkg upgrade --overlay-ports=ports --no-dry-run
+        cat /usr/local/share/vcpkg/buildtrees/irrlicht-rectclip/install-x64-linux-dbg-out.log
     # - name: Build patched Irrlicht
       # if: (contains(github.event.head_commit.message, '[skip-osx]') != true && (contains(github.event.head_commit.message, '[do-irr]') || contains(github.event.head_commit.message, '[new]')))
       # run: |
