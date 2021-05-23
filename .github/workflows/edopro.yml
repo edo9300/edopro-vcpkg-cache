@@ -27,14 +27,14 @@ jobs:
       shell: bash
       if: (contains(github.event.head_commit.message, '[skip-win]') != true && startsWith(github.ref, 'refs/tags/') && contains(github.event.head_commit.message, '[new]') != true)
       run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/kevinlul/edopro-vcpkg-cache/releases
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
         echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
         rm -f tmp.json
     - name: Download latest release's json
       shell: bash
       if: (contains(github.event.head_commit.message, '[skip-win]') != true && startsWith(github.ref, 'refs/tags/') != true && contains(github.event.head_commit.message, '[new]') != true)
       run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o previous.json https://api.github.com/repos/kevinlul/edopro-vcpkg-cache/releases/latest
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o previous.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
     - name: Download cached archive
       shell: bash
       if: (contains(github.event.head_commit.message, '[skip-win]') != true && contains(github.event.head_commit.message, '[new]') != true)
@@ -83,7 +83,7 @@ jobs:
       if: (contains(github.event.head_commit.message, '[skip-win]') != true && startsWith(github.ref, 'refs/tags/'))
       shell: bash
       run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/kevinlul/edopro-vcpkg-cache/releases/latest
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
         echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
         echo ::set-output name=asset_path::$VCPKG_INSTALLATION_ROOT/installed_x86-windows-static.zip
     - name: Upload binaries to GitHub
@@ -105,7 +105,7 @@ jobs:
       shell: bash
       if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
       run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/kevinlul/edopro-vcpkg-cache/releases
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
         echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
         rm -f tmp.json
     - name: Download cached archive
@@ -118,7 +118,7 @@ jobs:
       if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
       shell: bash
       run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/kevinlul/edopro-vcpkg-cache/releases/latest
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
         echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
     - name: Upload binaries to GitHub
       if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
@@ -129,6 +129,274 @@ jobs:
         upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
         asset_path: ./installed_x86-windows-static.zip
         asset_name: installed_x86-windows-static.zip
+        asset_content_type: application/zip
+
+  x86-windows-static-vs2019:
+    runs-on: windows-2019
+    needs: create-release
+    steps:
+    - uses: actions/checkout@v1
+      if: contains(github.event.head_commit.message, '[skip-win]') != true
+      with:
+        fetch-depth: 1
+    - name: Download 1-latest release's json
+      shell: bash
+      if: (contains(github.event.head_commit.message, '[skip-win]') != true && startsWith(github.ref, 'refs/tags/') && contains(github.event.head_commit.message, '[new]') != true)
+      run: |
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
+        echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
+        rm -f tmp.json
+    - name: Download latest release's json
+      shell: bash
+      if: (contains(github.event.head_commit.message, '[skip-win]') != true && startsWith(github.ref, 'refs/tags/') != true && contains(github.event.head_commit.message, '[new]') != true)
+      run: |
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o previous.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
+    - name: Download cached archive
+      shell: bash
+      if: (contains(github.event.head_commit.message, '[skip-win]') != true && contains(github.event.head_commit.message, '[new]') != true)
+      run: |
+        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x86-windows-static-vs2019.zip'){ console.log(obj['url']) }})")"
+    - name: Customize vcpkg
+      if: contains(github.event.head_commit.message, '[skip-win]') != true
+      shell: bash
+      run: |
+        cd $VCPKG_INSTALLATION_ROOT
+        echo -e "\nset(VCPKG_PLATFORM_TOOLSET v142)" >> triplets/community/x86-windows-static.cmake
+    - name: Extract vcpkg cache
+      if: (contains(github.event.head_commit.message, '[skip-win]') != true && contains(github.event.head_commit.message, '[new]') != true)
+      shell: bash
+      run: |
+        dir=$PWD
+        cd $VCPKG_INSTALLATION_ROOT
+        "$PROGRAMFILES/7-Zip/7z.exe" x $dir/installed_x86-windows-static-vs2019.zip -aos
+        cd $dir
+        rm -f installed_x86-windows-static-vs2019.zip
+    #vcpkg fails cloning git repositories with the bundled git binaries on windows server 2019
+    #remove them from path so that it uses a portable version
+    - name: Git workarund
+      if: contains(github.event.head_commit.message, '[skip-win]') != true
+      shell: bash
+      run: |
+        mv "C:\Program Files\Git\bin\git.exe" "C:\Program Files\Git\bin\git2.exe"
+        mv "C:\Program Files\Git\cmd\git.exe" "C:\Program Files\Git\cmd\git2.exe"
+        mv "C:\Program Files\Git\mingw64\bin\git.exe" "C:\Program Files\Git\mingw64\bin\git2.exe"
+    - name: Upgrade vcpkg dependencies
+      if: contains(github.event.head_commit.message, '[skip-win]') != true
+      run: |
+        vcpkg upgrade --overlay-ports=ports --no-dry-run
+    - name: Install dependencies
+      if: contains(github.event.head_commit.message, '[skip-win]') != true
+      shell: bash
+      run: |
+        vcpkg install --triplet x86-windows-static \
+          --overlay-ports=ports \
+          lua[cpp] \
+          libevent sqlite3 \
+          bzip2 libjpeg-turbo libpng zlib \
+          curl[openssl] openssl libgit2-win32openssl[openssl] fmt nlohmann-json \
+          mpg123 openal-soft \
+          libflac libvorbis \
+          discord-rpc-payload
+    - name: Git workarund restore
+      if: contains(github.event.head_commit.message, '[skip-win]') != true
+      shell: bash
+      run: |
+        mv "C:\Program Files\Git\bin\git2.exe" "C:\Program Files\Git\bin\git.exe"
+        mv "C:\Program Files\Git\cmd\git2.exe" "C:\Program Files\Git\cmd\git.exe"
+        mv "C:\Program Files\Git\mingw64\bin\git2.exe" "C:\Program Files\Git\mingw64\bin\git.exe"
+    - name: Zip binaries
+      if: contains(github.event.head_commit.message, '[skip-win]') != true
+      shell: bash
+      run: |
+        cd $VCPKG_INSTALLATION_ROOT
+        "$PROGRAMFILES/7-Zip/7z.exe" a -tzip installed_x86-windows-static-vs2019.zip installed scripts .vcpkg-root vcpkg.exe
+    - name: Get upload endpoint
+      id: get_endpoint
+      if: (contains(github.event.head_commit.message, '[skip-win]') != true && startsWith(github.ref, 'refs/tags/'))
+      shell: bash
+      run: |
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
+        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
+        echo ::set-output name=asset_path::$VCPKG_INSTALLATION_ROOT/installed_x86-windows-static-vs2019.zip
+    - name: Upload binaries to GitHub
+      if: (contains(github.event.head_commit.message, '[skip-win]') != true && startsWith(github.ref, 'refs/tags/'))
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        asset_path: ${{ steps.get_endpoint.outputs.asset_path }}
+        asset_name: installed_x86-windows-static-vs2019.zip
+        asset_content_type: application/zip
+
+  x86-windows-static-vs2019-passthrough:
+    runs-on: windows-2016
+    needs: create-release
+    steps:
+    - name: Download 1-latest release's json
+      shell: bash
+      if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
+      run: |
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
+        echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
+        rm -f tmp.json
+    - name: Download cached archive
+      shell: bash
+      if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
+      run: |
+        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x86-windows-static-vs2019.zip'){ console.log(obj['url']) }})")"
+    - name: Get upload endpoint
+      id: get_endpoint
+      if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
+      shell: bash
+      run: |
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
+        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
+    - name: Upload binaries to GitHub
+      if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        asset_path: ./installed_x86-windows-static-vs2019.zip
+        asset_name: installed_x86-windows-static-vs2019.zip
+        asset_content_type: application/zip
+
+  x86-windows-static-vs2015:
+    runs-on: windows-2019
+    needs: create-release
+    steps:
+    - uses: actions/checkout@v1
+      if: contains(github.event.head_commit.message, '[skip-win]') != true
+      with:
+        fetch-depth: 1
+    - name: Add Visual Studio 2015 toolset
+      run: |
+        "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" modify --channelId VisualStudio.16.Release --productId Microsoft.VisualStudio.Product.Enterprise -q --add Microsoft.VisualStudio.Component.VC.140
+      shell: cmd
+    - name: Download 1-latest release's json
+      shell: bash
+      if: (contains(github.event.head_commit.message, '[skip-win]') != true && startsWith(github.ref, 'refs/tags/') && contains(github.event.head_commit.message, '[new]') != true)
+      run: |
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
+        echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
+        rm -f tmp.json
+    - name: Download latest release's json
+      shell: bash
+      if: (contains(github.event.head_commit.message, '[skip-win]') != true && startsWith(github.ref, 'refs/tags/') != true && contains(github.event.head_commit.message, '[new]') != true)
+      run: |
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o previous.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
+    - name: Download cached archive
+      shell: bash
+      if: (contains(github.event.head_commit.message, '[skip-win]') != true && contains(github.event.head_commit.message, '[new]') != true)
+      run: |
+        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x86-windows-static-vs2015.zip'){ console.log(obj['url']) }})")"
+    - name: Customize vcpkg
+      if: contains(github.event.head_commit.message, '[skip-win]') != true
+      shell: bash
+      run: |
+        cd $VCPKG_INSTALLATION_ROOT
+        echo -e "\nset(VCPKG_PLATFORM_TOOLSET v140)" >> triplets/community/x86-windows-static.cmake
+    - name: Extract vcpkg cache
+      if: (contains(github.event.head_commit.message, '[skip-win]') != true && contains(github.event.head_commit.message, '[new]') != true)
+      shell: bash
+      run: |
+        dir=$PWD
+        cd $VCPKG_INSTALLATION_ROOT
+        "$PROGRAMFILES/7-Zip/7z.exe" x $dir/installed_x86-windows-static-vs2015.zip -aos
+        cd $dir
+        rm -f installed_x86-windows-static-vs2015.zip
+    #vcpkg fails cloning git repositories with the bundled git binaries on windows server 2019
+    #remove them from path so that it uses a portable version
+    - name: Git workarund
+      if: contains(github.event.head_commit.message, '[skip-win]') != true
+      shell: bash
+      run: |
+        mv "C:\Program Files\Git\bin\git.exe" "C:\Program Files\Git\bin\git2.exe"
+        mv "C:\Program Files\Git\cmd\git.exe" "C:\Program Files\Git\cmd\git2.exe"
+        mv "C:\Program Files\Git\mingw64\bin\git.exe" "C:\Program Files\Git\mingw64\bin\git2.exe"
+    - name: Upgrade vcpkg dependencies
+      if: contains(github.event.head_commit.message, '[skip-win]') != true
+      run: |
+        vcpkg upgrade --overlay-ports=ports --no-dry-run
+    - name: Install dependencies
+      if: contains(github.event.head_commit.message, '[skip-win]') != true
+      shell: bash
+      run: |
+        vcpkg install --triplet x86-windows-static \
+          --overlay-ports=ports \
+          lua[cpp] \
+          libevent sqlite3 \
+          bzip2 libjpeg-turbo libpng zlib \
+          curl[openssl] openssl libgit2-win32openssl[openssl] fmt nlohmann-json \
+          mpg123 openal-soft \
+          libflac libvorbis \
+          discord-rpc-payload
+    - name: Git workarund restore
+      if: contains(github.event.head_commit.message, '[skip-win]') != true
+      shell: bash
+      run: |
+        mv "C:\Program Files\Git\bin\git2.exe" "C:\Program Files\Git\bin\git.exe"
+        mv "C:\Program Files\Git\cmd\git2.exe" "C:\Program Files\Git\cmd\git.exe"
+        mv "C:\Program Files\Git\mingw64\bin\git2.exe" "C:\Program Files\Git\mingw64\bin\git.exe"
+    - name: Zip binaries
+      if: contains(github.event.head_commit.message, '[skip-win]') != true
+      shell: bash
+      run: |
+        cd $VCPKG_INSTALLATION_ROOT
+        "$PROGRAMFILES/7-Zip/7z.exe" a -tzip installed_x86-windows-static-vs2015.zip installed scripts .vcpkg-root vcpkg.exe
+    - name: Get upload endpoint
+      id: get_endpoint
+      if: (contains(github.event.head_commit.message, '[skip-win]') != true && startsWith(github.ref, 'refs/tags/'))
+      shell: bash
+      run: |
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
+        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
+        echo ::set-output name=asset_path::$VCPKG_INSTALLATION_ROOT/installed_x86-windows-static-vs2015.zip
+    - name: Upload binaries to GitHub
+      if: (contains(github.event.head_commit.message, '[skip-win]') != true && startsWith(github.ref, 'refs/tags/'))
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        asset_path: ${{ steps.get_endpoint.outputs.asset_path }}
+        asset_name: installed_x86-windows-static-vs2015.zip
+        asset_content_type: application/zip
+
+  x86-windows-static-vs2015-passthrough:
+    runs-on: windows-2019
+    needs: create-release
+    steps:
+    - name: Download 1-latest release's json
+      shell: bash
+      if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
+      run: |
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
+        echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
+        rm -f tmp.json
+    - name: Download cached archive
+      shell: bash
+      if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
+      run: |
+        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x86-windows-static-vs2015.zip'){ console.log(obj['url']) }})")"
+    - name: Get upload endpoint
+      id: get_endpoint
+      if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
+      shell: bash
+      run: |
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
+        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
+    - name: Upload binaries to GitHub
+      if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        asset_path: ./installed_x86-windows-static-vs2015.zip
+        asset_name: installed_x86-windows-static-vs2015.zip
         asset_content_type: application/zip
 
   x64-osx:
@@ -146,14 +414,14 @@ jobs:
       shell: bash
       if: (contains(github.event.head_commit.message, '[skip-osx]') != true && startsWith(github.ref, 'refs/tags/') && contains(github.event.head_commit.message, '[new]') != true)
       run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/kevinlul/edopro-vcpkg-cache/releases
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
         echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
         rm -f tmp.json
     - name: Download latest release's json
       shell: bash
       if: (contains(github.event.head_commit.message, '[skip-osx]') != true && startsWith(github.ref, 'refs/tags/') != true && contains(github.event.head_commit.message, '[new]') != true)
       run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o previous.json https://api.github.com/repos/kevinlul/edopro-vcpkg-cache/releases/latest
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o previous.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
     - name: Download cached archive
       shell: bash
       if: (contains(github.event.head_commit.message, '[skip-osx]') != true && contains(github.event.head_commit.message, '[new]') != true)
@@ -230,7 +498,7 @@ jobs:
       id: get_endpoint
       if: (contains(github.event.head_commit.message, '[skip-osx]') != true && startsWith(github.ref, 'refs/tags/'))
       run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/kevinlul/edopro-vcpkg-cache/releases/latest
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
         echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
         echo ::set-output name=asset_path::$VCPKG_INSTALLATION_ROOT/installed_x64-osx.7z
     - name: Upload binaries to GitHub
@@ -252,7 +520,7 @@ jobs:
       shell: bash
       if: (contains(github.event.head_commit.message, '[skip-osx]') && startsWith(github.ref, 'refs/tags/'))
       run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/kevinlul/edopro-vcpkg-cache/releases
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
         echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
         rm -f tmp.json
     - name: Download cached archive
@@ -265,7 +533,7 @@ jobs:
       if: (contains(github.event.head_commit.message, '[skip-osx]') && startsWith(github.ref, 'refs/tags/'))
       shell: bash
       run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/kevinlul/edopro-vcpkg-cache/releases/latest
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
         echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
     - name: Upload binaries to GitHub
       if: (contains(github.event.head_commit.message, '[skip-osx]') && startsWith(github.ref, 'refs/tags/'))
@@ -294,13 +562,13 @@ jobs:
     - name: Download 1-latest release's json
       if: (contains(github.event.head_commit.message, '[skip-linux]') != true && startsWith(github.ref, 'refs/tags/') && contains(github.event.head_commit.message, '[new]') != true)
       run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/kevinlul/edopro-vcpkg-cache/releases
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
         echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
         rm -f tmp.json
     - name: Download latest release's json
       if: (contains(github.event.head_commit.message, '[skip-linux]') != true && startsWith(github.ref, 'refs/tags/') != true && contains(github.event.head_commit.message, '[new]') != true)
       run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o previous.json https://api.github.com/repos/kevinlul/edopro-vcpkg-cache/releases/latest
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o previous.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
     - name: Download cached archive
       if: (contains(github.event.head_commit.message, '[skip-linux]') != true && contains(github.event.head_commit.message, '[new]') != true)
       run: |
@@ -336,7 +604,7 @@ jobs:
       id: get_endpoint
       if: (contains(github.event.head_commit.message, '[skip-linux]') != true && startsWith(github.ref, 'refs/tags/'))
       run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/kevinlul/edopro-vcpkg-cache/releases/latest
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
         echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
         echo ::set-output name=asset_path::$VCPKG_INSTALLATION_ROOT/installed_x64-linux.7z
     - name: Upload binaries to GitHub
@@ -357,7 +625,7 @@ jobs:
     - name: Download 1-latest release's json
       if: (contains(github.event.head_commit.message, '[skip-linux]') && startsWith(github.ref, 'refs/tags/'))
       run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/kevinlul/edopro-vcpkg-cache/releases
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
         echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
         rm -f tmp.json
     - name: Download cached archive
@@ -368,7 +636,7 @@ jobs:
       id: get_endpoint
       if: (contains(github.event.head_commit.message, '[skip-linux]') && startsWith(github.ref, 'refs/tags/'))
       run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/kevinlul/edopro-vcpkg-cache/releases/latest
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
         echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
     - name: Upload binaries to GitHub
       if: (contains(github.event.head_commit.message, '[skip-linux]') && startsWith(github.ref, 'refs/tags/'))
