@@ -307,6 +307,14 @@ jobs:
         "$PROGRAMFILES/7-Zip/7z.exe" x $dir/installed_x86-windows-static-vs2015.zip -aos
         cd $dir
         rm -f installed_x86-windows-static-vs2015.zip
+    - name: Force vs2019 generator
+      if: contains(github.event.head_commit.message, '[skip-win]') != true
+      shell: bash
+      run: |
+        rm ./ports/libssh2/portfile.cmake
+        mv ./ports/libssh2/portfilevs2015.cmake ./ports/libssh2/portfile.cmake
+        rm ./ports/openal-soft/portfile.cmake
+        mv ./ports/openal-soft/portfilevs2015.cmake ./ports/openal-soft/portfile.cmake
     #vcpkg fails cloning git repositories with the bundled git binaries on windows server 2019
     #remove them from path so that it uses a portable version
     - name: Git workarund
