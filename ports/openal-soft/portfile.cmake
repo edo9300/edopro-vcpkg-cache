@@ -6,8 +6,6 @@ vcpkg_from_github(
     REF ae4eacf147e2c2340cc4e02a790df04c793ed0a9 # openal-soft-1.21.1
     SHA512 6ba006d3dad6efe002f285ff509a59f02b499ec3f6065df12a89c52355464117b4dbabcd04ee9cbf22cc3b4125c8e456769b172f8c3e9ee215e760b2c51a0a8f
     HEAD_REF master
-    PATCHES
-        dont-export-symbols-in-static-build.patch
 )
 
 if(VCPKG_LIBRARY_LINKAGE STREQUAL "dynamic")
