@@ -65,7 +65,13 @@ jobs:
       run: |
         vcpkg install --triplet x86-windows-static \
           --overlay-ports=ports \
-          openal-soft
+          lua[cpp] \
+          libevent sqlite3 \
+          bzip2 libjpeg-turbo libpng zlib \
+          curl[openssl] openssl libgit2-win32openssl[openssl] fmt nlohmann-json \
+          openal-soft \
+          libflac libvorbis \
+          discord-rpc-payload
     - name: Zip binaries
       if: contains(github.event.head_commit.message, '[skip-win]') != true
       shell: bash
@@ -184,7 +190,13 @@ jobs:
       run: |
         vcpkg install --triplet x86-windows-static \
           --overlay-ports=ports \
-          openal-soft
+          lua[cpp] \
+          libevent sqlite3 \
+          bzip2 libjpeg-turbo libpng zlib \
+          curl[openssl] openssl libgit2-win32openssl[openssl] fmt nlohmann-json \
+          openal-soft \
+          libflac libvorbis \
+          discord-rpc-payload
     - name: Git workarund restore
       if: contains(github.event.head_commit.message, '[skip-win]') != true
       shell: bash
@@ -322,7 +334,13 @@ jobs:
       run: |
         vcpkg install --triplet x86-windows-static \
           --overlay-ports=ports \
-          openal-soft
+          lua[cpp] \
+          libevent sqlite3 \
+          bzip2 libjpeg-turbo libpng zlib \
+          curl[openssl] openssl libgit2-win32openssl[openssl] fmt nlohmann-json \
+          openal-soft \
+          libflac libvorbis \
+          discord-rpc-payload
     - name: Git workarund restore
       if: contains(github.event.head_commit.message, '[skip-win]') != true
       shell: bash
@@ -474,7 +492,11 @@ jobs:
       if: contains(github.event.head_commit.message, '[skip-osx]') != true
       run: |
         vcpkg install --overlay-ports=ports \
-          openal-soft
+          libevent openssl libgit2 \
+          openal-soft \
+          libflac libvorbis \
+          fmt nlohmann-json \
+          discord-rpc-payload
     - name: 7-Zip binaries
       if: contains(github.event.head_commit.message, '[skip-osx]') != true
       run: |
@@ -576,7 +598,12 @@ jobs:
       if: contains(github.event.head_commit.message, '[skip-linux]') != true
       run: |
         vcpkg install --overlay-ports=ports \
-        openal-soft
+          libevent sqlite3 \
+          irrlicht-rectclip \
+          curl openssl libgit2 fmt nlohmann-json \
+          openal-soft \
+          libflac libvorbis \
+          discord-rpc-payload
     - name: 7-Zip binaries
       if: contains(github.event.head_commit.message, '[skip-linux]') != true
       run: |
