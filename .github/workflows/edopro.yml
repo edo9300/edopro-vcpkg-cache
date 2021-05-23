@@ -69,7 +69,7 @@ jobs:
           libevent sqlite3 \
           bzip2 libjpeg-turbo libpng zlib \
           curl[openssl] openssl libgit2-win32openssl[openssl] fmt nlohmann-json \
-          mpg123 openal-soft \
+          openal-soft \
           libflac libvorbis \
           discord-rpc-payload
     - name: Zip binaries
@@ -194,7 +194,7 @@ jobs:
           libevent sqlite3 \
           bzip2 libjpeg-turbo libpng zlib \
           curl[openssl] openssl libgit2-win32openssl[openssl] fmt nlohmann-json \
-          mpg123 openal-soft \
+          openal-soft \
           libflac libvorbis \
           discord-rpc-payload
     - name: Git workarund restore
@@ -330,7 +330,7 @@ jobs:
           libevent sqlite3 \
           bzip2 libjpeg-turbo libpng zlib \
           curl[openssl] openssl libgit2-win32openssl[openssl] fmt nlohmann-json \
-          mpg123 openal-soft \
+          openal-soft \
           libflac libvorbis \
           discord-rpc-payload
     - name: Git workarund restore
@@ -434,10 +434,11 @@ jobs:
           https://raw.githubusercontent.com/edo9300/ygopro/master/travis/get-osx-sdk.sh
         chmod +x get-osx-sdk.sh
         ./get-osx-sdk.sh $MACOSX_DEPLOYMENT_TARGET
-    - name: Install Homebrew prerequisites
-      if: contains(github.event.head_commit.message, '[skip-osx]') != true
-      run: |
-        brew install yasm
+    #needed to build mpg123
+    # - name: Install Homebrew prerequisites
+      # if: contains(github.event.head_commit.message, '[skip-osx]') != true
+      # run: |
+        # brew install yasm
     - name: Extract vcpkg cache
       if: (contains(github.event.head_commit.message, '[skip-osx]') != true && contains(github.event.head_commit.message, '[new]') != true)
       run: |
@@ -484,7 +485,7 @@ jobs:
       run: |
         vcpkg install --overlay-ports=ports \
           libevent openssl libgit2 \
-          mpg123 openal-soft \
+          openal-soft \
           libflac libvorbis \
           fmt nlohmann-json \
           discord-rpc-payload
@@ -592,7 +593,7 @@ jobs:
           libevent sqlite3 \
           irrlicht-rectclip \
           curl openssl libgit2 fmt nlohmann-json \
-          mpg123 openal-soft \
+          openal-soft \
           libflac libvorbis \
           discord-rpc-payload
     - name: 7-Zip binaries
