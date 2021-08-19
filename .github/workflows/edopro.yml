@@ -568,7 +568,7 @@ jobs:
       if: contains(github.event.head_commit.message, '[skip-linux]') != true
       run: |
         sudo apt-get update
-        sudo apt-get install -y yasm libgl1-mesa-dev libasound2-dev libpulse-dev
+        sudo apt-get install -y yasm libgl1-mesa-dev libasound2-dev libpulse-dev libwayland-dev
     - name: Download 1-latest release's json
       if: (contains(github.event.head_commit.message, '[skip-linux]') != true && startsWith(github.ref, 'refs/tags/') && contains(github.event.head_commit.message, '[new]') != true)
       run: |
