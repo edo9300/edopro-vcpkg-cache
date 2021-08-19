@@ -1,8 +1,7 @@
 Source: irrlicht-rectclip
-Version: 1.9-5
+Version: 1.9-6
 Homepage: http://irrlicht.sourceforge.net
 Description: Irrlicht lightning fast 3d engine
-Build-Depends: zlib, libpng, bzip2, libjpeg-turbo
 
 Feature: fast-fpu
 Description: Enable fast maths (at the expense of precision)
