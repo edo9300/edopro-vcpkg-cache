@@ -265,11 +265,6 @@ jobs:
       if: contains(github.event.head_commit.message, '[skip-win]') != true
       with:
         fetch-depth: 1
-    - name: Add Visual Studio 2015 toolset
-      if: contains(github.event.head_commit.message, '[skip-win]') != true
-      run: |
-        "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" modify --channelId VisualStudio.16.Release --productId Microsoft.VisualStudio.Product.Enterprise -q --add Microsoft.VisualStudio.Component.VC.140
-      shell: cmd
     - name: Download 1-latest release's json
       shell: bash
       if: (contains(github.event.head_commit.message, '[skip-win]') != true && startsWith(github.ref, 'refs/tags/') && contains(github.event.head_commit.message, '[new]') != true)
