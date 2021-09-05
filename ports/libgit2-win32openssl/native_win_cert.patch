@@ -1,8 +1,8 @@
 diff --git a/src/streams/openssl.c b/src/streams/openssl.c
-index 5b66352ca..f5941ad31 100644
+index 89c96780c14..15f5368173d 100644
 --- a/src/streams/openssl.c
 +++ b/src/streams/openssl.c
-@@ -23,6 +23,8 @@
+@@ -27,6 +27,8 @@
  # include <sys/types.h>
  # include <sys/socket.h>
  # include <netinet/in.h>
@@ -10,12 +10,11 @@ index 5b66352ca..f5941ad31 100644
 +# include <wincrypt.h>
  #endif
  
- #include <openssl/ssl.h>
-@@ -810,14 +812,149 @@ int git_openssl_stream_new(git_stream **out, const char *host, const char *port)
- 
- int git_openssl__set_cert_location(const char *file, const char *path)
+ #ifndef GIT_OPENSSL_DYNAMIC
+@@ -715,15 +717,149 @@ int git_openssl__set_cert_location(const char *file, const char *path)
  {
--	if (SSL_CTX_load_verify_locations(git__ssl_ctx, file, path) == 0) {
+ 	if (openssl_ensure_initialized() < 0)
+ 		return -1;
 +#ifdef GIT_WIN32
 +	if(strncmp(file, "SYSTEM", sizeof("SYSTEM")) == 0){
 +	    int result;
@@ -44,7 +43,9 @@ index 5b66352ca..f5941ad31 100644
 +#if defined(DEBUGBUILD) && !defined(CURL_DISABLE_VERBOSE_STRINGS)
 +		    char cert_name[256];
 +#endif
-+
+ 
+-	if (SSL_CTX_load_verify_locations(git__ssl_ctx, file, path) == 0) {
+-		char errmsg[256];
 +		    pContext = CertEnumCertificatesInStore(hStore, pContext);
 +		    if(!pContext)
 +			break;
@@ -56,7 +57,10 @@ index 5b66352ca..f5941ad31 100644
 +		    }
 +		    infof(data, "SSL: Checking cert \"%s\"\n", cert_name);
 +#endif
-+
+ 
+-		ERR_error_string_n(ERR_get_error(), errmsg, sizeof(errmsg));
+-		git_error_set(GIT_ERROR_SSL, "OpenSSL error: failed to load certificates: %s",
+-			errmsg);
 +		    encoded_cert = (const unsigned char *)pContext->pbCertEncoded;
 +		    if(!encoded_cert)
 +			continue;
@@ -95,7 +99,8 @@ index 5b66352ca..f5941ad31 100644
 +			    enhkey_usage = (CERT_ENHKEY_USAGE *)tmp;
 +			    enhkey_usage_size = req_size;
 +			}
-+
+ 
+-		return -1;
 +			if(CertGetEnhancedKeyUsage(pContext, 0, enhkey_usage, &req_size)) {
 +			    if(!enhkey_usage->cUsageIdentifier) {
 +				/* "If GetLastError returns CRYPT_E_NOT_FOUND, the certificate is
@@ -150,16 +155,15 @@ index 5b66352ca..f5941ad31 100644
 +	} else
 +#endif
 +	{
-+	    if(SSL_CTX_load_verify_locations(git__ssl_ctx, file, path) == 0) {
- 		char errmsg[256];
- 
- 		ERR_error_string_n(ERR_get_error(), errmsg, sizeof(errmsg));
- 		git_error_set(GIT_ERROR_SSL, "OpenSSL error: failed to load certificates: %s",
--			errmsg);
-+			      errmsg);
- 
- 		return -1;
-+	    }
++		if (SSL_CTX_load_verify_locations(git__ssl_ctx, file, path) == 0) {
++			char errmsg[256];
++
++			ERR_error_string_n(ERR_get_error(), errmsg, sizeof(errmsg));
++			git_error_set(GIT_ERROR_SSL, "OpenSSL error: failed to load certificates: %s",
++				errmsg);
++
++			return -1;
++		}
  	}
  	return 0;
  }

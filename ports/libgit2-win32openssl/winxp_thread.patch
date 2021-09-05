@@ -1,0 +1,49 @@
+diff --git a/src/win32/thread.c b/src/win32/thread.c
+index f5cacd320d8..e161cf8b580 100644
+--- a/src/win32/thread.c
++++ b/src/win32/thread.c
+@@ -18,7 +18,7 @@ static win32_srwlock_fn win32_srwlock_release_shared;
+ static win32_srwlock_fn win32_srwlock_acquire_exclusive;
+ static win32_srwlock_fn win32_srwlock_release_exclusive;
+ 
+-static DWORD fls_index;
++static DWORD tls_index;
+ 
+ /* The thread procedure stub used to invoke the caller's procedure
+  * and capture the return value for later collection. Windows will
+@@ -29,7 +29,7 @@ static DWORD WINAPI git_win32__threadproc(LPVOID lpParameter)
+ 	git_thread *thread = lpParameter;
+ 
+ 	/* Set the current thread for `git_thread_exit` */
+-	FlsSetValue(fls_index, thread);
++	TlsSetValue(tls_index, thread);
+ 
+ 	thread->result = thread->proc(thread->param);
+ 
+@@ -38,7 +38,7 @@ static DWORD WINAPI git_win32__threadproc(LPVOID lpParameter)
+ 
+ static void git_threads_global_shutdown(void)
+ {
+-	FlsFree(fls_index);
++	TlsFree(tls_index);
+ }
+ 
+ int git_threads_global_init(void)
+@@ -58,7 +58,7 @@ int git_threads_global_init(void)
+ 			GetProcAddress(hModule, "ReleaseSRWLockExclusive");
+ 	}
+ 
+-	if ((fls_index = FlsAlloc(NULL)) == FLS_OUT_OF_INDEXES)
++	if ((tls_index = TlsAlloc()) == FLS_OUT_OF_INDEXES)
+ 		return -1;
+ 
+ 	return git_runtime_shutdown_register(git_threads_global_shutdown);
+@@ -105,7 +105,7 @@ int git_thread_join(
+ 
+ void git_thread_exit(void *value)
+ {
+-	git_thread *thread = FlsGetValue(fls_index);
++	git_thread *thread = TlsGetValue(tls_index);
+ 
+ 	if (thread)
+ 		thread->result = value;
