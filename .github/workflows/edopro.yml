@@ -128,6 +128,119 @@ jobs:
         asset_name: installed_x86-windows-static.zip
         asset_content_type: application/zip
 
+  x86-windows-static-vs2022:
+    runs-on: windows-2022
+    needs: create-release
+    steps:
+    - uses: actions/checkout@v1
+      if: contains(github.event.head_commit.message, '[skip-win]') != true
+      with:
+        fetch-depth: 1
+    - name: Download 1-latest release's json
+      shell: bash
+      if: (contains(github.event.head_commit.message, '[skip-win]') != true && startsWith(github.ref, 'refs/tags/') && contains(github.event.head_commit.message, '[new]') != true)
+      run: |
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
+        echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
+        rm -f tmp.json
+    - name: Download latest release's json
+      shell: bash
+      if: (contains(github.event.head_commit.message, '[skip-win]') != true && startsWith(github.ref, 'refs/tags/') != true && contains(github.event.head_commit.message, '[new]') != true)
+      run: |
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o previous.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
+    - name: Download cached archive
+      shell: bash
+      if: (contains(github.event.head_commit.message, '[skip-win]') != true && contains(github.event.head_commit.message, '[new]') != true)
+      run: |
+        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x86-windows-static-vs2022.zip'){ console.log(obj['url']) }})")"
+    - name: Customize vcpkg
+      if: contains(github.event.head_commit.message, '[skip-win]') != true
+      shell: bash
+      run: |
+        cd $VCPKG_INSTALLATION_ROOT
+        echo -e "\nset(VCPKG_PLATFORM_TOOLSET v143)" >> triplets/community/x86-windows-static.cmake
+    - name: Extract vcpkg cache
+      if: (contains(github.event.head_commit.message, '[skip-win]') != true && contains(github.event.head_commit.message, '[new]') != true)
+      shell: bash
+      run: |
+        dir=$PWD
+        cd $VCPKG_INSTALLATION_ROOT
+        "$PROGRAMFILES/7-Zip/7z.exe" x $dir/installed_x86-windows-static-vs2022.zip -aos
+        cd $dir
+        rm -f installed_x86-windows-static-vs2022.zip
+    - name: Upgrade vcpkg dependencies
+      if: contains(github.event.head_commit.message, '[skip-win]') != true
+      run: |
+        vcpkg upgrade --overlay-ports=ports --no-dry-run
+    - name: Install dependencies
+      if: contains(github.event.head_commit.message, '[skip-win]') != true
+      shell: bash
+      run: |
+        vcpkg install --triplet x86-windows-static \
+          --overlay-ports=ports \
+          lua[cpp] \
+          libevent sqlite3 \
+          bzip2 libjpeg-turbo libpng zlib \
+          curl[openssl] openssl libgit2-win32openssl[openssl] fmt nlohmann-json \
+          openal-soft \
+          libflac libvorbis \
+          discord-rpc-payload
+    - name: Zip binaries
+      if: contains(github.event.head_commit.message, '[skip-win]') != true
+      shell: bash
+      run: |
+        cd $VCPKG_INSTALLATION_ROOT
+        "$PROGRAMFILES/7-Zip/7z.exe" a -tzip installed_x86-windows-static-vs2022.zip installed scripts .vcpkg-root vcpkg.exe
+    - name: Get upload endpoint
+      id: get_endpoint
+      if: (contains(github.event.head_commit.message, '[skip-win]') != true && startsWith(github.ref, 'refs/tags/'))
+      shell: bash
+      run: |
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
+        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
+        echo ::set-output name=asset_path::$VCPKG_INSTALLATION_ROOT/installed_x86-windows-static-vs2022.zip
+    - name: Upload binaries to GitHub
+      if: (contains(github.event.head_commit.message, '[skip-win]') != true && startsWith(github.ref, 'refs/tags/'))
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        asset_path: ${{ steps.get_endpoint.outputs.asset_path }}
+        asset_name: installed_x86-windows-static-vs2022.zip
+        asset_content_type: application/zip
+
+  x86-windows-static-vs2022-passthrough:
+    runs-on: ubuntu-18.04
+    needs: create-release
+    steps:
+    - name: Download 1-latest release's json
+      if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
+      run: |
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
+        echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
+        rm -f tmp.json
+    - name: Download cached archive
+      if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
+      run: |
+        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x86-windows-static-vs2022.zip'){ console.log(obj['url']) }})")"
+    - name: Get upload endpoint
+      id: get_endpoint
+      if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
+      run: |
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
+        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
+    - name: Upload binaries to GitHub
+      if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        asset_path: ./installed_x86-windows-static-vs2022.zip
+        asset_name: installed_x86-windows-static-vs2022.zip
+        asset_content_type: application/zip
+
   x86-windows-static-vs2019:
     runs-on: windows-2019
     needs: create-release
