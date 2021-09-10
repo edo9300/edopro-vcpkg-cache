@@ -281,15 +281,6 @@ jobs:
         "$PROGRAMFILES/7-Zip/7z.exe" x $dir/installed_x86-windows-static-vs2019.zip -aos
         cd $dir
         rm -f installed_x86-windows-static-vs2019.zip
-    #vcpkg fails cloning git repositories with the bundled git binaries on windows server 2019
-    #remove them from path so that it uses a portable version
-    - name: Git workarund
-      if: contains(github.event.head_commit.message, '[skip-win]') != true
-      shell: bash
-      run: |
-        mv "C:\Program Files\Git\bin\git.exe" "C:\Program Files\Git\bin\git2.exe"
-        mv "C:\Program Files\Git\cmd\git.exe" "C:\Program Files\Git\cmd\git2.exe"
-        mv "C:\Program Files\Git\mingw64\bin\git.exe" "C:\Program Files\Git\mingw64\bin\git2.exe"
     - name: Upgrade vcpkg dependencies
       if: contains(github.event.head_commit.message, '[skip-win]') != true
       run: |
@@ -307,13 +298,6 @@ jobs:
           openal-soft \
           libflac libvorbis \
           discord-rpc-payload
-    - name: Git workarund restore
-      if: contains(github.event.head_commit.message, '[skip-win]') != true
-      shell: bash
-      run: |
-        mv "C:\Program Files\Git\bin\git2.exe" "C:\Program Files\Git\bin\git.exe"
-        mv "C:\Program Files\Git\cmd\git2.exe" "C:\Program Files\Git\cmd\git.exe"
-        mv "C:\Program Files\Git\mingw64\bin\git2.exe" "C:\Program Files\Git\mingw64\bin\git.exe"
     - name: Zip binaries
       if: contains(github.event.head_commit.message, '[skip-win]') != true
       shell: bash
@@ -418,15 +402,6 @@ jobs:
         mv ./ports/libssh2/portfilevs2015.cmake ./ports/libssh2/portfile.cmake
         rm ./ports/openal-soft/portfile.cmake
         mv ./ports/openal-soft/portfilevs2015.cmake ./ports/openal-soft/portfile.cmake
-    #vcpkg fails cloning git repositories with the bundled git binaries on windows server 2019
-    #remove them from path so that it uses a portable version
-    - name: Git workarund
-      if: contains(github.event.head_commit.message, '[skip-win]') != true
-      shell: bash
-      run: |
-        mv "C:\Program Files\Git\bin\git.exe" "C:\Program Files\Git\bin\git2.exe"
-        mv "C:\Program Files\Git\cmd\git.exe" "C:\Program Files\Git\cmd\git2.exe"
-        mv "C:\Program Files\Git\mingw64\bin\git.exe" "C:\Program Files\Git\mingw64\bin\git2.exe"
     - name: Upgrade vcpkg dependencies
       if: contains(github.event.head_commit.message, '[skip-win]') != true
       run: |
@@ -444,13 +419,6 @@ jobs:
           openal-soft \
           libflac libvorbis \
           discord-rpc-payload
-    - name: Git workarund restore
-      if: contains(github.event.head_commit.message, '[skip-win]') != true
-      shell: bash
-      run: |
-        mv "C:\Program Files\Git\bin\git2.exe" "C:\Program Files\Git\bin\git.exe"
-        mv "C:\Program Files\Git\cmd\git2.exe" "C:\Program Files\Git\cmd\git.exe"
-        mv "C:\Program Files\Git\mingw64\bin\git2.exe" "C:\Program Files\Git\mingw64\bin\git.exe"
     - name: Zip binaries
       if: contains(github.event.head_commit.message, '[skip-win]') != true
       shell: bash
