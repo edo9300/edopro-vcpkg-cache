@@ -210,37 +210,6 @@ jobs:
         asset_name: installed_x86-windows-static-vs2022.zip
         asset_content_type: application/zip
 
-  x86-windows-static-vs2022-passthrough:
-    runs-on: ubuntu-18.04
-    needs: create-release
-    steps:
-    - name: Download 1-latest release's json
-      if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
-      run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
-        echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
-        rm -f tmp.json
-    - name: Download cached archive
-      if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
-      run: |
-        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x86-windows-static-vs2022.zip'){ console.log(obj['url']) }})")"
-    - name: Get upload endpoint
-      id: get_endpoint
-      if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
-      run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
-        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
-    - name: Upload binaries to GitHub
-      if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
-      uses: actions/upload-release-asset@v1.0.1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
-        asset_path: ./installed_x86-windows-static-vs2022.zip
-        asset_name: installed_x86-windows-static-vs2022.zip
-        asset_content_type: application/zip
-
   x86-windows-static-vs2019:
     runs-on: windows-2019
     needs: create-release
@@ -320,37 +289,6 @@ jobs:
       with:
         upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
         asset_path: ${{ steps.get_endpoint.outputs.asset_path }}
-        asset_name: installed_x86-windows-static-vs2019.zip
-        asset_content_type: application/zip
-
-  x86-windows-static-vs2019-passthrough:
-    runs-on: ubuntu-18.04
-    needs: create-release
-    steps:
-    - name: Download 1-latest release's json
-      if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
-      run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
-        echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
-        rm -f tmp.json
-    - name: Download cached archive
-      if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
-      run: |
-        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x86-windows-static-vs2019.zip'){ console.log(obj['url']) }})")"
-    - name: Get upload endpoint
-      id: get_endpoint
-      if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
-      run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
-        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
-    - name: Upload binaries to GitHub
-      if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
-      uses: actions/upload-release-asset@v1.0.1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
-        asset_path: ./installed_x86-windows-static-vs2019.zip
         asset_name: installed_x86-windows-static-vs2019.zip
         asset_content_type: application/zip
 
@@ -441,37 +379,6 @@ jobs:
       with:
         upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
         asset_path: ${{ steps.get_endpoint.outputs.asset_path }}
-        asset_name: installed_x86-windows-static-vs2015.zip
-        asset_content_type: application/zip
-
-  x86-windows-static-vs2015-passthrough:
-    runs-on: ubuntu-18.04
-    needs: create-release
-    steps:
-    - name: Download 1-latest release's json
-      if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
-      run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
-        echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
-        rm -f tmp.json
-    - name: Download cached archive
-      if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
-      run: |
-        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x86-windows-static-vs2015.zip'){ console.log(obj['url']) }})")"
-    - name: Get upload endpoint
-      id: get_endpoint
-      if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
-      run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
-        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
-    - name: Upload binaries to GitHub
-      if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
-      uses: actions/upload-release-asset@v1.0.1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
-        asset_path: ./installed_x86-windows-static-vs2015.zip
         asset_name: installed_x86-windows-static-vs2015.zip
         asset_content_type: application/zip
 
@@ -589,37 +496,6 @@ jobs:
         asset_name: installed_x64-osx.7z
         asset_content_type: application/x-7z-compressed
 
-  x64-osx-passthrough:
-    runs-on: ubuntu-18.04
-    needs: create-release
-    steps:
-    - name: Download 1-latest release's json
-      if: (contains(github.event.head_commit.message, '[skip-osx]') && startsWith(github.ref, 'refs/tags/'))
-      run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
-        echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
-        rm -f tmp.json
-    - name: Download cached archive
-      if: (contains(github.event.head_commit.message, '[skip-osx]') && startsWith(github.ref, 'refs/tags/'))
-      run: |
-        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x64-osx.7z'){ console.log(obj['url']) }})")"
-    - name: Get upload endpoint
-      id: get_endpoint
-      if: (contains(github.event.head_commit.message, '[skip-osx]') && startsWith(github.ref, 'refs/tags/'))
-      run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
-        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
-    - name: Upload binaries to GitHub
-      if: (contains(github.event.head_commit.message, '[skip-osx]') && startsWith(github.ref, 'refs/tags/'))
-      uses: actions/upload-release-asset@v1.0.1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
-        asset_path: ./installed_x64-osx.7z
-        asset_name: installed_x64-osx.7z
-        asset_content_type: application/zip
-
   x64-linux:
     runs-on: ubuntu-18.04
     needs: create-release
@@ -692,27 +568,33 @@ jobs:
         asset_name: installed_x64-linux.7z
         asset_content_type: application/x-7z-compressed
 
-  x64-linux-passthrough:
+  passthroughs:
     runs-on: ubuntu-18.04
     needs: create-release
     steps:
     - name: Download 1-latest release's json
-      if: (contains(github.event.head_commit.message, '[skip-linux]') && startsWith(github.ref, 'refs/tags/'))
+      if: ((contains(github.event.head_commit.message, '[skip-win]')
+          || contains(github.event.head_commit.message, '[skip-osx]')
+          || contains(github.event.head_commit.message, '[skip-linux]'))
+          && startsWith(github.ref, 'refs/tags/'))
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
         echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
         rm -f tmp.json
-    - name: Download cached archive
-      if: (contains(github.event.head_commit.message, '[skip-linux]') && startsWith(github.ref, 'refs/tags/'))
-      run: |
-        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x64-linux.7z'){ console.log(obj['url']) }})")"
     - name: Get upload endpoint
       id: get_endpoint
-      if: (contains(github.event.head_commit.message, '[skip-linux]') && startsWith(github.ref, 'refs/tags/'))
+      if: ((contains(github.event.head_commit.message, '[skip-win]')
+          || contains(github.event.head_commit.message, '[skip-osx]')
+          || contains(github.event.head_commit.message, '[skip-linux]'))
+          && startsWith(github.ref, 'refs/tags/'))
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
         echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
-    - name: Upload binaries to GitHub
+    - name: Download cached archive linux
+      if: (contains(github.event.head_commit.message, '[skip-linux]') && startsWith(github.ref, 'refs/tags/'))
+      run: |
+        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x64-linux.7z'){ console.log(obj['url']) }})")"
+    - name: Upload binaries to GitHub linux
       if: (contains(github.event.head_commit.message, '[skip-linux]') && startsWith(github.ref, 'refs/tags/'))
       uses: actions/upload-release-asset@v1.0.1
       env:
@@ -722,3 +604,73 @@ jobs:
         asset_path: ./installed_x64-linux.7z
         asset_name: installed_x64-linux.7z
         asset_content_type: application/x-7z-compressed
+    - name: Download cached archive osx
+      if: (contains(github.event.head_commit.message, '[skip-osx]') && startsWith(github.ref, 'refs/tags/'))
+      run: |
+        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x64-osx.7z'){ console.log(obj['url']) }})")"
+    - name: Upload binaries to GitHub osx
+      if: (contains(github.event.head_commit.message, '[skip-osx]') && startsWith(github.ref, 'refs/tags/'))
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        asset_path: ./installed_x64-osx.7z
+        asset_name: installed_x64-osx.7z
+        asset_content_type: application/zip
+    - name: Download cached archive vs2015
+      if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
+      run: |
+        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x86-windows-static-vs2015.zip'){ console.log(obj['url']) }})")"
+    - name: Upload binaries to GitHub vs2015
+      if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        asset_path: ./installed_x86-windows-static-vs2015.zip
+        asset_name: installed_x86-windows-static-vs2015.zip
+        asset_content_type: application/zip
+    - name: Download cached archive vs2017
+      if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
+      run: |
+        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x86-windows-static-vs2017.zip'){ console.log(obj['url']) }})")"
+    - name: Upload binaries to GitHub vs2017
+      if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        asset_path: ./installed_x86-windows-static-vs2017.zip
+        asset_name: installed_x86-windows-static-vs2017.zip
+        asset_content_type: application/zip
+    - name: Download cached archive vs2019
+      if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
+      run: |
+        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x86-windows-static-vs2019.zip'){ console.log(obj['url']) }})")"
+    - name: Upload binaries to GitHub vs2019
+      if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        asset_path: ./installed_x86-windows-static-vs2019.zip
+        asset_name: installed_x86-windows-static-vs2019.zip
+        asset_content_type: application/zip
+    - name: Download cached archive vs2022
+      if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
+      run: |
+        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x86-windows-static-vs2022.zip'){ console.log(obj['url']) }})")"
+    - name: Upload binaries to GitHub vs2022
+      if: (contains(github.event.head_commit.message, '[skip-win]') && startsWith(github.ref, 'refs/tags/'))
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        asset_path: ./installed_x86-windows-static-vs2022.zip
+        asset_name: installed_x86-windows-static-vs2022.zip
+        asset_content_type: application/zip
