@@ -521,7 +521,7 @@ jobs:
         asset_content_type: application/x-7z-compressed
 
   passthroughs:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     needs: create-release
     if: ((contains(github.event.head_commit.message, '[skip-win]')
         || contains(github.event.head_commit.message, '[skip-win15]')
@@ -586,7 +586,7 @@ jobs:
     - name: Download cached archive vs2017
       if: contains(github.event.head_commit.message, '[skip-win]')
       run: |
-        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x86-windows-static-vs2017.zip'){ console.log(obj['url']) }})")"
+        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x86-windows-static.zip'){ console.log(obj['url']) }})")"
     - name: Upload binaries to GitHub vs2017
       if: contains(github.event.head_commit.message, '[skip-win]')
       uses: actions/upload-release-asset@v1.0.1
@@ -594,8 +594,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
-        asset_path: ./installed_x86-windows-static-vs2017.zip
-        asset_name: installed_x86-windows-static-vs2017.zip
+        asset_path: ./installed_x86-windows-static.zip
+        asset_name: installed_x86-windows-static.zip
         asset_content_type: application/zip
     - name: Download cached archive vs2019
       if: contains(github.event.head_commit.message, '[skip-win19]')
