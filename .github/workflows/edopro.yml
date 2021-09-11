@@ -135,6 +135,13 @@ jobs:
         "$PROGRAMFILES/7-Zip/7z.exe" x $dir/installed_x86-windows-static-vs2022.zip -aos
         cd $dir
         rm -f installed_x86-windows-static-vs2022.zip
+    - name: Force vs2022 generator
+      shell: bash
+      run: |
+        rm ./ports/libssh2/portfile.cmake
+        mv ./ports/libssh2/portfilevs2022.cmake ./ports/libssh2/portfile.cmake
+        rm ./ports/openal-soft/portfile.cmake
+        mv ./ports/openal-soft/portfilevs2022.cmake ./ports/openal-soft/portfile.cmake
     - name: Upgrade vcpkg dependencies
       run: |
         vcpkg upgrade --overlay-ports=ports --no-dry-run
