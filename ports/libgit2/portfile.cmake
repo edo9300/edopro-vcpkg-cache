@@ -26,6 +26,7 @@ vcpkg_configure_cmake(
         -DBUILD_CLAR=OFF
         -DREGEX_BACKEND=${REGEX_BACKEND}
         -DSTATIC_CRT=${STATIC_CRT}
+		-DUSE_SSH=OFF
 )
 
 vcpkg_install_cmake()
