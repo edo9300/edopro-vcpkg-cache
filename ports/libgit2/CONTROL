@@ -2,7 +2,7 @@ Source: libgit2
 Version: 1.2.0
 Port-Version: 2
 Homepage: https://github.com/libgit2/libgit2
-Build-Depends: zlib, ssh2, openssl (!windows&&!uwp)
+Build-Depends: zlib, libssh2, openssl (!windows&&!uwp)
 Description: Git linkable library
 Supports: !uwp
 
