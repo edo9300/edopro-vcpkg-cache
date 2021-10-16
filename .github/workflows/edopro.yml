@@ -397,7 +397,6 @@ jobs:
         cd $dir
         rm -f installed_x64-osx.7z
     - name: Upgrade vcpkg dependencies
-      if: contains(github.event.head_commit.message, '[skip-osx]') != true
       run: |
         vcpkg upgrade --overlay-ports=ports --no-dry-run
     # - name: Build patched Irrlicht
@@ -485,7 +484,7 @@ jobs:
       shell: bash
       if: contains(github.event.head_commit.message, '[new]') != true
       run: |
-        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x64-osx.7z'){ console.log(obj['url']) }})")"
+        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_aarch64-osx.7z'){ console.log(obj['url']) }})")"
     # - name: Install 10.11 SDK
       # run: |
         # curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name \
@@ -505,8 +504,10 @@ jobs:
         7z x $dir/installed_aarch64-osx.7z -aos
         cd $dir
         rm -f installed_aarch64-osx.7z
+    - name: Change openssl port
+      run: |
+        rm -r ports/openssl && mv ports/openssl-m1 ports/openssl
     - name: Upgrade vcpkg dependencies
-      if: contains(github.event.head_commit.message, '[skip-osx]') != true
       run: |
         vcpkg upgrade --overlay-ports=ports --no-dry-run --triplet=arm64-osx
     # - name: Build patched Irrlicht
