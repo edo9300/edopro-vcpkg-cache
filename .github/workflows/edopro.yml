@@ -417,7 +417,7 @@ jobs:
           https://github.com/edo9300/irrlicht1-8-4/archive/1.9-custom.zip
         7z x irrlicht1-8-4-1.9-custom.zip
         cd irrlicht1-8-4-1.9-custom
-        xcodebuild SYSTEM_HEADER_SEARCH_PATHS=./../../include -project source/Irrlicht/Irrlicht.xcodeproj -configuration Release -target Irrlicht_OSX SYMROOT=build -sdk $SDKROOT -parallelizeTargets
+        xcodebuild -project source/Irrlicht/Irrlicht.xcodeproj -configuration Release -target Irrlicht_OSX SYMROOT=build -sdk $SDKROOT -parallelizeTargets
         rm -r -f $VCPKG_INSTALLATION_ROOT/irrlicht
         mkdir -p ../irrlicht/lib
         cp -r include ../irrlicht/include
@@ -530,7 +530,7 @@ jobs:
           https://github.com/edo9300/irrlicht1-8-4/archive/1.9-custom.zip
         7z x irrlicht1-8-4-1.9-custom.zip
         cd irrlicht1-8-4-1.9-custom
-        xcodebuild ARCHS=arm64 ONLY_ACTIVE_ARCH=NO SYSTEM_HEADER_SEARCH_PATHS=./../../include -project source/Irrlicht/Irrlicht.xcodeproj -configuration Release -target Irrlicht_OSX SYMROOT=build -sdk $SDKROOT -parallelizeTargets
+        xcodebuild ARCHS=arm64 ONLY_ACTIVE_ARCH=NO -project source/Irrlicht/Irrlicht.xcodeproj -configuration Release -target Irrlicht_OSX SYMROOT=build -sdk $SDKROOT -parallelizeTargets
         rm -r -f $VCPKG_INSTALLATION_ROOT/irrlicht
         mkdir -p ../irrlicht/lib
         cp -r include ../irrlicht/include
