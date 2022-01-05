@@ -16,7 +16,7 @@ jobs:
         prerelease: false
 
   x86-windows-static:
-    runs-on: windows-2016
+    runs-on: windows-2019
     needs: create-release
     if: contains(github.event.head_commit.message, '[skip-win]') != true
     steps:
@@ -54,6 +54,13 @@ jobs:
         "$PROGRAMFILES/7-Zip/7z.exe" x $dir/installed_x86-windows-static.zip -aos
         cd $dir
         rm -f installed_x86-windows-static.zip
+    - name: Force vs2019 generator
+      shell: bash
+      run: |
+        rm ./ports/libssh2/portfile.cmake
+        mv ./ports/libssh2/portfile-force-vs2019-generator.cmake ./ports/libssh2/portfile.cmake
+        rm ./ports/openal-soft/portfile.cmake
+        mv ./ports/openal-soft/portfile-force-vs2019-generator.cmake ./ports/openal-soft/portfile.cmake
     - name: Upgrade vcpkg dependencies
       if: contains(github.event.head_commit.message, '[skip-win]') != true
       run: |
@@ -135,13 +142,6 @@ jobs:
         "$PROGRAMFILES/7-Zip/7z.exe" x $dir/installed_x86-windows-static-vs2022.zip -aos
         cd $dir
         rm -f installed_x86-windows-static-vs2022.zip
-    - name: Force vs2022 generator
-      shell: bash
-      run: |
-        rm ./ports/libssh2/portfile.cmake
-        mv ./ports/libssh2/portfilevs2022.cmake ./ports/libssh2/portfile.cmake
-        rm ./ports/openal-soft/portfile.cmake
-        mv ./ports/openal-soft/portfilevs2022.cmake ./ports/openal-soft/portfile.cmake
     - name: Upgrade vcpkg dependencies
       run: |
         vcpkg upgrade --overlay-ports=ports --no-dry-run
@@ -306,9 +306,9 @@ jobs:
       shell: bash
       run: |
         rm ./ports/libssh2/portfile.cmake
-        mv ./ports/libssh2/portfilevs2015.cmake ./ports/libssh2/portfile.cmake
+        mv ./ports/libssh2/portfile-force-vs2019-generator.cmake ./ports/libssh2/portfile.cmake
         rm ./ports/openal-soft/portfile.cmake
-        mv ./ports/openal-soft/portfilevs2015.cmake ./ports/openal-soft/portfile.cmake
+        mv ./ports/openal-soft/portfile-force-vs2019-generator.cmake ./ports/openal-soft/portfile.cmake
     - name: Upgrade vcpkg dependencies
       run: |
         vcpkg upgrade --overlay-ports=ports --no-dry-run
