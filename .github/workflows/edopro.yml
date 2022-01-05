@@ -432,6 +432,7 @@ jobs:
         vcpkg install --overlay-ports=ports \
           libevent openssl libgit2 \
           openal-soft \
+          curl sqlite3 \
           libflac libvorbis \
           fmt nlohmann-json \
           discord-rpc-payload
@@ -545,6 +546,7 @@ jobs:
         vcpkg install --overlay-ports=ports \
           libevent openssl libgit2 \
           openal-soft \
+          curl sqlite3 \
           libflac libvorbis \
           fmt nlohmann-json \
           discord-rpc-payload \

@@ -16,7 +16,7 @@ Build-Depends: nghttp2, curl[core,ssl]
 Description: HTTP2 support
 
 Feature: ssl
-Build-Depends: curl[core,openssl] (!osx), curl[core,sectransp] (osx)
+Build-Depends: curl[core,openssl]
 Description: Default SSL backend
 
 Feature: ssh
