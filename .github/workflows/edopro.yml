@@ -15,10 +15,103 @@ jobs:
         draft: false
         prerelease: false
 
-  x86-windows-static:
+  x86-windows-static-vs2017_xp:
     runs-on: windows-2019
     needs: create-release
     if: contains(github.event.head_commit.message, '[skip-win]') != true
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+    - name: Download 1-latest release's json
+      shell: bash
+      if: (startsWith(github.ref, 'refs/tags/') && contains(github.event.head_commit.message, '[new]') != true)
+      run: |
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
+        echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
+        rm -f tmp.json
+    - name: Download latest release's json
+      shell: bash
+      if: (startsWith(github.ref, 'refs/tags/') != true && contains(github.event.head_commit.message, '[new]') != true)
+      run: |
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o previous.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
+    - name: Download cached archive
+      shell: bash
+      if: contains(github.event.head_commit.message, '[new]') != true
+      run: |
+        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x86-windows-static.zip'){ console.log(obj['url']) }})")"
+    - name: Customize vcpkg
+      shell: bash
+      run: |
+        cd $VCPKG_INSTALLATION_ROOT
+        echo -e "\nset(VCPKG_PLATFORM_TOOLSET v141)" >> triplets/community/x86-windows-static.cmake
+    # vcpkg doesn't like when we pass an _xp toolset to it
+    # so make the v141_cp toolset the v141 and pass it to the triplet
+    - name: Make v141_xp toolset v141
+      shell: bash
+      run: |
+        cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Microsoft\VC\v150\Platforms\Win32\PlatformToolsets"
+        rm -r v141 || true
+        mv v141_xp v141
+    - name: Extract vcpkg cache
+      if: contains(github.event.head_commit.message, '[new]') != true
+      shell: bash
+      run: |
+        dir=$PWD
+        cd $VCPKG_INSTALLATION_ROOT
+        "$PROGRAMFILES/7-Zip/7z.exe" x $dir/installed_x86-windows-static.zip -aos
+        cd $dir
+        rm -f installed_x86-windows-static.zip
+    - name: Force vs2019 generator
+      shell: bash
+      run: |
+        rm ./ports/libssh2/portfile.cmake
+        mv ./ports/libssh2/portfile-force-vs2019-generator.cmake ./ports/libssh2/portfile.cmake
+        rm ./ports/openal-soft/portfile.cmake
+        mv ./ports/openal-soft/portfile-force-vs2019-generator.cmake ./ports/openal-soft/portfile.cmake
+    - name: Upgrade vcpkg dependencies
+      run: |
+        vcpkg upgrade --overlay-ports=ports --no-dry-run
+    - name: Install dependencies
+      shell: bash
+      run: |
+        vcpkg install --triplet x86-windows-static \
+          --overlay-ports=ports \
+          lua[cpp] \
+          libevent sqlite3 \
+          bzip2 libjpeg-turbo libpng zlib \
+          curl[openssl] openssl libgit2-win32openssl[openssl] fmt nlohmann-json \
+          openal-soft \
+          libflac libvorbis \
+          discord-rpc-payload
+    - name: Zip binaries
+      shell: bash
+      run: |
+        cd $VCPKG_INSTALLATION_ROOT
+        "$PROGRAMFILES/7-Zip/7z.exe" a -tzip installed_x86-windows-static.zip installed scripts .vcpkg-root vcpkg.exe
+    - name: Get upload endpoint
+      id: get_endpoint
+      if: startsWith(github.ref, 'refs/tags/')
+      shell: bash
+      run: |
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
+        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
+        echo ::set-output name=asset_path::$VCPKG_INSTALLATION_ROOT/installed_x86-windows-static.zip
+    - name: Upload binaries to GitHub
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        asset_path: ${{ steps.get_endpoint.outputs.asset_path }}
+        asset_name: installed_x86-windows-static.zip
+        asset_content_type: application/zip
+
+  x86-windows-static-vs2017:
+    runs-on: windows-2019
+    needs: create-release
+    if: contains(github.event.head_commit.message, '[skip-win17]') != true
     steps:
     - uses: actions/checkout@v1
       with:
@@ -51,9 +144,9 @@ jobs:
       run: |
         dir=$PWD
         cd $VCPKG_INSTALLATION_ROOT
-        "$PROGRAMFILES/7-Zip/7z.exe" x $dir/installed_x86-windows-static.zip -aos
+        "$PROGRAMFILES/7-Zip/7z.exe" x $dir/installed_x86-windows-static-vs2017.zip -aos
         cd $dir
-        rm -f installed_x86-windows-static.zip
+        rm -f installed_x86-windows-static-vs2017.zip
     - name: Force vs2019 generator
       shell: bash
       run: |
@@ -62,11 +155,9 @@ jobs:
         rm ./ports/openal-soft/portfile.cmake
         mv ./ports/openal-soft/portfile-force-vs2019-generator.cmake ./ports/openal-soft/portfile.cmake
     - name: Upgrade vcpkg dependencies
-      if: contains(github.event.head_commit.message, '[skip-win]') != true
       run: |
         vcpkg upgrade --overlay-ports=ports --no-dry-run
     - name: Install dependencies
-      if: contains(github.event.head_commit.message, '[skip-win]') != true
       shell: bash
       run: |
         vcpkg install --triplet x86-windows-static \
@@ -79,11 +170,10 @@ jobs:
           libflac libvorbis \
           discord-rpc-payload
     - name: Zip binaries
-      if: contains(github.event.head_commit.message, '[skip-win]') != true
       shell: bash
       run: |
         cd $VCPKG_INSTALLATION_ROOT
-        "$PROGRAMFILES/7-Zip/7z.exe" a -tzip installed_x86-windows-static.zip installed scripts .vcpkg-root vcpkg.exe
+        "$PROGRAMFILES/7-Zip/7z.exe" a -tzip installed_x86-windows-static-vs2017.zip installed scripts .vcpkg-root vcpkg.exe
     - name: Get upload endpoint
       id: get_endpoint
       if: startsWith(github.ref, 'refs/tags/')
@@ -91,7 +181,7 @@ jobs:
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
         echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
-        echo ::set-output name=asset_path::$VCPKG_INSTALLATION_ROOT/installed_x86-windows-static.zip
+        echo ::set-output name=asset_path::$VCPKG_INSTALLATION_ROOT/installed_x86-windows-static-vs2017.zip
     - name: Upload binaries to GitHub
       if: startsWith(github.ref, 'refs/tags/')
       uses: actions/upload-release-asset@v1.0.1
@@ -100,7 +190,7 @@ jobs:
       with:
         upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
         asset_path: ${{ steps.get_endpoint.outputs.asset_path }}
-        asset_name: installed_x86-windows-static.zip
+        asset_name: installed_x86-windows-static-vs2017.zip
         asset_content_type: application/zip
 
   x86-windows-static-vs2022:
@@ -715,6 +805,7 @@ jobs:
     needs: create-release
     if: ((contains(github.event.head_commit.message, '[skip-win]')
         || contains(github.event.head_commit.message, '[skip-win15]')
+        || contains(github.event.head_commit.message, '[skip-win17]')
         || contains(github.event.head_commit.message, '[skip-win19]')
         || contains(github.event.head_commit.message, '[skip-win22]')
         || contains(github.event.head_commit.message, '[skip-osx]')
@@ -804,10 +895,24 @@ jobs:
         asset_name: installed_x86-windows-static-vs2015.zip
         asset_content_type: application/zip
     - name: Download cached archive vs2017
+      if: contains(github.event.head_commit.message, '[skip-win17]')
+      run: |
+        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x86-windows-static-vs2017.zip'){ console.log(obj['url']) }})")"
+    - name: Upload binaries to GitHub vs2017
+      if: contains(github.event.head_commit.message, '[skip-win17]')
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        asset_path: ./installed_x86-windows-static-vs2017.zip
+        asset_name: installed_x86-windows-static-vs2017.zip
+        asset_content_type: application/zip
+    - name: Download cached archive vs2017_xp
       if: contains(github.event.head_commit.message, '[skip-win]')
       run: |
         curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x86-windows-static.zip'){ console.log(obj['url']) }})")"
-    - name: Upload binaries to GitHub vs2017
+    - name: Upload binaries to GitHub vs2017_xp
       if: contains(github.event.head_commit.message, '[skip-win]')
       uses: actions/upload-release-asset@v1.0.1
       env:
