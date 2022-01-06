@@ -16,7 +16,7 @@ jobs:
         prerelease: false
 
   x86-windows-static-vs2017_xp:
-    runs-on: windows-2019
+    runs-on: windows-2016
     needs: create-release
     if: contains(github.event.head_commit.message, '[skip-win]') != true
     steps:
@@ -47,12 +47,12 @@ jobs:
         echo -e "\nset(VCPKG_PLATFORM_TOOLSET v141)" >> triplets/community/x86-windows-static.cmake
     # vcpkg doesn't like when we pass an _xp toolset to it
     # so make the v141_cp toolset the v141 and pass it to the triplet
-    - name: Make v141_xp toolset v141
-      shell: bash
-      run: |
-        cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Microsoft\VC\v150\Platforms\Win32\PlatformToolsets"
-        rm -r v141 || true
-        mv v141_xp v141
+    # - name: Make v141_xp toolset v141
+      # shell: bash
+      # run: |
+        # cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Microsoft\VC\v150\Platforms\Win32\PlatformToolsets"
+        # rm -r v141 || true
+        # mv v141_xp v141
     - name: Extract vcpkg cache
       if: contains(github.event.head_commit.message, '[new]') != true
       shell: bash
@@ -62,13 +62,13 @@ jobs:
         "$PROGRAMFILES/7-Zip/7z.exe" x $dir/installed_x86-windows-static.zip -aos
         cd $dir
         rm -f installed_x86-windows-static.zip
-    - name: Force vs2019 generator
-      shell: bash
-      run: |
-        rm ./ports/libssh2/portfile.cmake
-        mv ./ports/libssh2/portfile-force-vs2019-generator.cmake ./ports/libssh2/portfile.cmake
-        rm ./ports/openal-soft/portfile.cmake
-        mv ./ports/openal-soft/portfile-force-vs2019-generator.cmake ./ports/openal-soft/portfile.cmake
+    # - name: Force vs2019 generator
+      # shell: bash
+      # run: |
+        # rm ./ports/libssh2/portfile.cmake
+        # mv ./ports/libssh2/portfile-force-vs2019-generator.cmake ./ports/libssh2/portfile.cmake
+        # rm ./ports/openal-soft/portfile.cmake
+        # mv ./ports/openal-soft/portfile-force-vs2019-generator.cmake ./ports/openal-soft/portfile.cmake
     - name: Upgrade vcpkg dependencies
       run: |
         vcpkg upgrade --overlay-ports=ports --no-dry-run
