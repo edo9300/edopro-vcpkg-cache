@@ -6,6 +6,8 @@ vcpkg_from_github(
     REF ae4eacf147e2c2340cc4e02a790df04c793ed0a9 # openal-soft-1.21.1
     SHA512 6ba006d3dad6efe002f285ff509a59f02b499ec3f6065df12a89c52355464117b4dbabcd04ee9cbf22cc3b4125c8e456769b172f8c3e9ee215e760b2c51a0a8f
     HEAD_REF master
+    PATCHES
+        wrong-flag-fix.patch
 )
 
 if(VCPKG_LIBRARY_LINKAGE STREQUAL "dynamic")
@@ -30,7 +32,7 @@ endif()
 
 vcpkg_configure_cmake(
     SOURCE_PATH ${SOURCE_PATH}
-	GENERATOR "Visual Studio 16 2019"
+	GENERATOR "Visual Studio 17 2022"
     OPTIONS
         -DLIBTYPE=${OPENAL_LIBTYPE}
         -DALSOFT_UTILS=OFF
@@ -56,6 +58,7 @@ vcpkg_configure_cmake(
         -DALSOFT_REQUIRE_WASAPI=${ALSOFT_REQUIRE_WINDOWS}
         -DALSOFT_CPUEXT_NEON=OFF
         -DCMAKE_DISABLE_FIND_PACKAGE_WindowsSDK=ON
+		-Tv141
 		-AWin32
 )
 

@@ -14,7 +14,7 @@ vcpkg_configure_cmake(
         -DBUILD_EXAMPLES=OFF
         -DBUILD_TESTING=OFF
         -DENABLE_ZLIB_COMPRESSION=ON
-		-Tv140
+		-Tv141
 		-AWin32
     OPTIONS_DEBUG
         -DENABLE_DEBUG_LOGGING=OFF

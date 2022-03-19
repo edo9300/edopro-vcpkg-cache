@@ -1,0 +1,15 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 9811316..e93731b 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -274,7 +274,9 @@ ENDIF()
+ 
+ # Set visibility/export options if available
+ IF(WIN32)
+-    SET(EXPORT_DECL "__declspec(dllexport)")
++    if(NOT LIBTYPE STREQUAL "STATIC")
++        set(EXPORT_DECL "__declspec(dllexport)")
++    endif()
+ ELSE()
+     SET(OLD_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS}")
+     # Yes GCC, really don't accept visibility modes you don't support

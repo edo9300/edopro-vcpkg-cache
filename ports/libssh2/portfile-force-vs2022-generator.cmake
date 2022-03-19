@@ -9,12 +9,12 @@ vcpkg_from_github(
 
 vcpkg_configure_cmake(
     SOURCE_PATH ${SOURCE_PATH}
-	GENERATOR "Visual Studio 16 2019"
+	GENERATOR "Visual Studio 17 2022"
     OPTIONS
         -DBUILD_EXAMPLES=OFF
         -DBUILD_TESTING=OFF
         -DENABLE_ZLIB_COMPRESSION=ON
-		-Tv140
+		-Tv141
 		-AWin32
     OPTIONS_DEBUG
         -DENABLE_DEBUG_LOGGING=OFF

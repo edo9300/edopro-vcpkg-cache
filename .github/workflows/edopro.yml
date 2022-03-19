@@ -16,7 +16,7 @@ jobs:
         prerelease: false
 
   x86-windows-static-vs2017_xp:
-    runs-on: windows-2016
+    runs-on: windows-2019
     needs: create-release
     if: contains(github.event.head_commit.message, '[skip-win]') != true
     steps:
@@ -47,12 +47,17 @@ jobs:
         echo -e "\nset(VCPKG_PLATFORM_TOOLSET v141)" >> triplets/community/x86-windows-static.cmake
     # vcpkg doesn't like when we pass an _xp toolset to it
     # so make the v141_cp toolset the v141 and pass it to the triplet
-    # - name: Make v141_xp toolset v141
-      # shell: bash
-      # run: |
-        # cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Microsoft\VC\v150\Platforms\Win32\PlatformToolsets"
-        # rm -r v141 || true
-        # mv v141_xp v141
+    - name: Make v141_xp toolset v141
+      shell: bash
+      run: |
+        cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Microsoft\VC\v150\Platforms\Win32\PlatformToolsets"
+        rm -r v141 || true
+        mv v141_xp v141
+    - name: Set proper windows build tools in path
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+          arch: win32
+          toolset: 14.16.27023
     - name: Extract vcpkg cache
       if: contains(github.event.head_commit.message, '[new]') != true
       shell: bash
@@ -62,28 +67,21 @@ jobs:
         "$PROGRAMFILES/7-Zip/7z.exe" x $dir/installed_x86-windows-static.zip -aos
         cd $dir
         rm -f installed_x86-windows-static.zip
-    # - name: Force vs2019 generator
-      # shell: bash
-      # run: |
-        # rm ./ports/libssh2/portfile.cmake
-        # mv ./ports/libssh2/portfile-force-vs2019-generator.cmake ./ports/libssh2/portfile.cmake
-        # rm ./ports/openal-soft/portfile.cmake
-        # mv ./ports/openal-soft/portfile-force-vs2019-generator.cmake ./ports/openal-soft/portfile.cmake
+    - name: Force vs2019 generator
+      shell: bash
+      run: |
+        rm ./ports/libssh2/portfile.cmake
+        mv ./ports/libssh2/portfile-force-vs2019-generator-2017-toolset.cmake ./ports/libssh2/portfile.cmake
+        rm ./ports/openal-soft/portfile.cmake
+        mv ./ports/openal-soft/portfile-force-vs2019-generator-2017-toolset.cmake ./ports/openal-soft/portfile.cmake
     - name: Upgrade vcpkg dependencies
+      shell: cmd
       run: |
         vcpkg upgrade --overlay-ports=ports --no-dry-run
     - name: Install dependencies
-      shell: bash
+      shell: cmd
       run: |
-        vcpkg install --triplet x86-windows-static \
-          --overlay-ports=ports \
-          lua[cpp] \
-          libevent sqlite3 \
-          bzip2 libjpeg-turbo libpng zlib \
-          curl[openssl] openssl libgit2-win32openssl[openssl] fmt nlohmann-json \
-          openal-soft \
-          libflac libvorbis \
-          discord-rpc-payload
+        vcpkg install --triplet x86-windows-static --overlay-ports=ports lua[cpp] libevent sqlite3 bzip2 libjpeg-turbo libpng zlib curl[openssl] openssl libgit2-win32openssl[openssl] fmt nlohmann-json openal-soft libflac libvorbis discord-rpc-payload
     - name: Zip binaries
       shell: bash
       run: |
@@ -109,7 +107,7 @@ jobs:
         asset_content_type: application/zip
 
   x86-windows-static-vs2017:
-    runs-on: windows-2019
+    runs-on: windows-2022
     needs: create-release
     if: contains(github.event.head_commit.message, '[skip-win17]') != true
     steps:
@@ -132,12 +130,17 @@ jobs:
       shell: bash
       if: contains(github.event.head_commit.message, '[new]') != true
       run: |
-        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x86-windows-static.zip'){ console.log(obj['url']) }})")"
+        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x86-windows-static-vs2017.zip'){ console.log(obj['url']) }})")"
     - name: Customize vcpkg
       shell: bash
       run: |
         cd $VCPKG_INSTALLATION_ROOT
         echo -e "\nset(VCPKG_PLATFORM_TOOLSET v141)" >> triplets/community/x86-windows-static.cmake
+    - name: Set proper windows build tools in path
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+          arch: win32
+          toolset: 14.16.27023
     - name: Extract vcpkg cache
       if: contains(github.event.head_commit.message, '[new]') != true
       shell: bash
@@ -147,28 +150,21 @@ jobs:
         "$PROGRAMFILES/7-Zip/7z.exe" x $dir/installed_x86-windows-static-vs2017.zip -aos
         cd $dir
         rm -f installed_x86-windows-static-vs2017.zip
-    - name: Force vs2019 generator
+    - name: Force vs2022 generator
       shell: bash
       run: |
         rm ./ports/libssh2/portfile.cmake
-        mv ./ports/libssh2/portfile-force-vs2019-generator.cmake ./ports/libssh2/portfile.cmake
+        mv ./ports/libssh2/portfile-force-vs2022-generator.cmake ./ports/libssh2/portfile.cmake
         rm ./ports/openal-soft/portfile.cmake
-        mv ./ports/openal-soft/portfile-force-vs2019-generator.cmake ./ports/openal-soft/portfile.cmake
+        mv ./ports/openal-soft/portfile-force-vs2022-generator.cmake ./ports/openal-soft/portfile.cmake
     - name: Upgrade vcpkg dependencies
+      shell: cmd
       run: |
         vcpkg upgrade --overlay-ports=ports --no-dry-run
     - name: Install dependencies
-      shell: bash
+      shell: cmd
       run: |
-        vcpkg install --triplet x86-windows-static \
-          --overlay-ports=ports \
-          lua[cpp] \
-          libevent sqlite3 \
-          bzip2 libjpeg-turbo libpng zlib \
-          curl[openssl] openssl libgit2-win32openssl[openssl] fmt nlohmann-json \
-          openal-soft \
-          libflac libvorbis \
-          discord-rpc-payload
+        vcpkg install --triplet x86-windows-static --overlay-ports=ports lua[cpp] libevent sqlite3 bzip2 libjpeg-turbo libpng zlib curl[openssl] openssl libgit2-win32openssl[openssl] fmt nlohmann-json openal-soft libflac libvorbis discord-rpc-payload
     - name: Zip binaries
       shell: bash
       run: |
@@ -383,6 +379,11 @@ jobs:
       run: |
         cd $VCPKG_INSTALLATION_ROOT
         echo -e "\nset(VCPKG_PLATFORM_TOOLSET v140)" >> triplets/community/x86-windows-static.cmake
+    - name: Set proper windows build tools in path
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+          arch: win32
+          toolset: '14.0'
     - name: Extract vcpkg cache
       if: contains(github.event.head_commit.message, '[new]') != true
       shell: bash
@@ -397,23 +398,16 @@ jobs:
       run: |
         rm ./ports/libssh2/portfile.cmake
         mv ./ports/libssh2/portfile-force-vs2019-generator.cmake ./ports/libssh2/portfile.cmake
-        rm ./ports/openal-soft/portfile.cmake
-        mv ./ports/openal-soft/portfile-force-vs2019-generator.cmake ./ports/openal-soft/portfile.cmake
+        rm -r ./ports/openal-soft
+        mv ./ports/openal-soft-vs2015 ./ports/openal-soft
     - name: Upgrade vcpkg dependencies
+      shell: cmd
       run: |
         vcpkg upgrade --overlay-ports=ports --no-dry-run
     - name: Install dependencies
-      shell: bash
+      shell: cmd
       run: |
-        vcpkg install --triplet x86-windows-static \
-          --overlay-ports=ports \
-          lua[cpp] \
-          libevent sqlite3 \
-          bzip2 libjpeg-turbo libpng zlib \
-          curl[openssl] openssl libgit2-win32openssl[openssl] fmt nlohmann-json \
-          openal-soft \
-          libflac libvorbis \
-          discord-rpc-payload
+        vcpkg install --triplet x86-windows-static --overlay-ports=ports lua[cpp] libevent sqlite3 bzip2 libjpeg-turbo libpng zlib curl[openssl] openssl libgit2-win32openssl[openssl] fmt nlohmann-json openal-soft libflac libvorbis discord-rpc-payload
     - name: Zip binaries
       shell: bash
       run: |
