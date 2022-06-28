@@ -81,7 +81,7 @@ jobs:
     - name: Install dependencies
       shell: cmd
       run: |
-        vcpkg install --triplet x86-windows-static --overlay-ports=ports lua[cpp] freetype[bzip2,core,png,zlib] libevent sqlite3 bzip2 libjpeg-turbo libpng zlib curl[openssl] openssl libgit2-win32openssl[openssl] fmt nlohmann-json openal-soft libflac libvorbis discord-rpc-payload
+        vcpkg install --triplet x86-windows-static --overlay-ports=ports liblzma lua[cpp] freetype[bzip2,core,png,zlib] libevent sqlite3 bzip2 libjpeg-turbo libpng zlib curl[openssl] openssl libgit2-win32openssl[openssl] fmt nlohmann-json openal-soft libflac libvorbis discord-rpc-payload
     - name: Zip binaries
       shell: bash
       run: |
@@ -164,7 +164,7 @@ jobs:
     - name: Install dependencies
       shell: cmd
       run: |
-        vcpkg install --triplet x86-windows-static --overlay-ports=ports lua[cpp] freetype[bzip2,core,png,zlib] libevent sqlite3 bzip2 libjpeg-turbo libpng zlib curl[openssl] openssl libgit2-win32openssl[openssl] fmt nlohmann-json openal-soft libflac libvorbis discord-rpc-payload
+        vcpkg install --triplet x86-windows-static --overlay-ports=ports liblzma lua[cpp] freetype[bzip2,core,png,zlib] libevent sqlite3 bzip2 libjpeg-turbo libpng zlib curl[openssl] openssl libgit2-win32openssl[openssl] fmt nlohmann-json openal-soft libflac libvorbis discord-rpc-payload
     - name: Zip binaries
       shell: bash
       run: |
@@ -236,7 +236,7 @@ jobs:
       run: |
         vcpkg install --triplet x86-windows-static \
           --overlay-ports=ports \
-          lua[cpp] freetype[bzip2,core,png,zlib] \
+          liblzma lua[cpp] freetype[bzip2,core,png,zlib] \
           libevent sqlite3 \
           bzip2 libjpeg-turbo libpng zlib \
           curl[openssl] openssl libgit2-win32openssl[openssl] fmt nlohmann-json \
@@ -317,7 +317,7 @@ jobs:
       run: |
         vcpkg install --triplet x86-windows-static \
           --overlay-ports=ports \
-          lua[cpp] freetype[bzip2,core,png,zlib] \
+          liblzma lua[cpp] freetype[bzip2,core,png,zlib] \
           libevent sqlite3 \
           bzip2 libjpeg-turbo libpng zlib \
           curl[openssl] openssl libgit2-win32openssl[openssl] fmt nlohmann-json \
@@ -407,7 +407,7 @@ jobs:
     - name: Install dependencies
       shell: cmd
       run: |
-        vcpkg install --triplet x86-windows-static --overlay-ports=ports lua[cpp] freetype[bzip2,core,png,zlib] libevent sqlite3 bzip2 libjpeg-turbo libpng zlib curl[openssl] openssl libgit2-win32openssl[openssl] fmt nlohmann-json openal-soft libflac libvorbis discord-rpc-payload
+        vcpkg install --triplet x86-windows-static --overlay-ports=ports liblzma lua[cpp] freetype[bzip2,core,png,zlib] libevent sqlite3 bzip2 libjpeg-turbo libpng zlib curl[openssl] openssl libgit2-win32openssl[openssl] fmt nlohmann-json openal-soft libflac libvorbis discord-rpc-payload
     - name: Zip binaries
       shell: bash
       run: |
@@ -514,7 +514,7 @@ jobs:
     - name: Install vcpkg dependencies
       run: |
         vcpkg install --overlay-ports=ports \
-          libevent openssl libgit2 \
+          liblzma libevent openssl libgit2 \
           freetype[bzip2,core,png,zlib] \
           openal-soft \
           curl sqlite3 \
@@ -629,7 +629,7 @@ jobs:
     - name: Install vcpkg dependencies
       run: |
         vcpkg install --overlay-ports=ports \
-          libevent openssl libgit2 \
+          liblzma libevent openssl libgit2 \
           freetype[bzip2,core,png,zlib] \
           openal-soft \
           curl sqlite3 \
@@ -700,7 +700,7 @@ jobs:
     - name: Install vcpkg dependencies
       run: |
         vcpkg install --overlay-ports=ports \
-          libevent sqlite3 \
+          liblzma libevent sqlite3 \
           irrlicht-rectclip \
           freetype[bzip2,core,png,zlib] \
           curl openssl libgit2 fmt nlohmann-json \
@@ -769,7 +769,7 @@ jobs:
     - name: Install vcpkg dependencies
       run: |
         vcpkg install --overlay-ports=ports \
-          libevent sqlite3 \
+          liblzma libevent sqlite3 \
           irrlicht-rectclip \
           freetype[bzip2,core,png,zlib] \
           curl openssl libgit2 fmt nlohmann-json \
