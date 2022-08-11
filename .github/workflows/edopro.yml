@@ -590,9 +590,6 @@ jobs:
         7z x $dir/installed_aarch64-osx.7z -aos
         cd $dir
         rm -f installed_aarch64-osx.7z
-    - name: Change openssl port
-      run: |
-        rm -r ports/openssl && mv ports/openssl-m1 ports/openssl
     - name: Upgrade vcpkg dependencies
       run: |
         vcpkg upgrade --overlay-ports=ports --no-dry-run --triplet=arm64-osx
