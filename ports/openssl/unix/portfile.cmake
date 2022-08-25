@@ -4,6 +4,7 @@ vcpkg_extract_source_archive_ex(
     REF ${OPENSSL_VERSION}
     PATCHES
         force-win-xp.patch
+        ios-simulator.patch
 )
 
 if(CMAKE_HOST_WIN32)
