@@ -498,10 +498,13 @@ jobs:
         7z x irrlicht1-8-4-1.9-custom.zip
         cd irrlicht1-8-4-1.9-custom
         xcodebuild -project source/Irrlicht/Irrlicht.xcodeproj -configuration Release -target Irrlicht_OSX SYMROOT=build -sdk $SDKROOT -parallelizeTargets
-        rm -r -f $VCPKG_INSTALLATION_ROOT/irrlicht
-        mkdir -p ../irrlicht/lib
-        cp -r include ../irrlicht/include
-        cp source/Irrlicht/build/Release/libIrrlicht.a ../irrlicht/lib
+        rm -r -f $VCPKG_INSTALLATION_ROOT/installed/x64-osx/include/irrlicht
+        mkdir -p $VCPKG_INSTALLATION_ROOT/installed/x64-osx/include
+        mkdir -p $VCPKG_INSTALLATION_ROOT/installed/x64-osx/lib
+        mkdir -p $VCPKG_INSTALLATION_ROOT/installed/x64-osx/debug/lib
+        cp -r include $VCPKG_INSTALLATION_ROOT/installed/x64-osx/include/irrlicht
+        cp source/Irrlicht/build/Release/libIrrlicht.a $VCPKG_INSTALLATION_ROOT/installed/x64-osx/lib
+        cp source/Irrlicht/build/Release/libIrrlicht.a $VCPKG_INSTALLATION_ROOT/installed/x64-osx/debug/lib
     # - name: Install SDL2 from vcpkg 
       # env:
         # SDKROOT: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
@@ -519,9 +522,8 @@ jobs:
           discord-rpc-payload
     - name: 7-Zip binaries
       run: |
-        mv irrlicht $VCPKG_INSTALLATION_ROOT || true
         cd $VCPKG_INSTALLATION_ROOT
-        7z a installed_x64-osx.7z installed scripts .vcpkg-root irrlicht
+        7z a installed_x64-osx.7z installed
     - name: Get upload endpoint
       id: get_endpoint
       if: startsWith(github.ref, 'refs/tags/')
@@ -604,10 +606,13 @@ jobs:
         7z x irrlicht1-8-4-1.9-custom.zip
         cd irrlicht1-8-4-1.9-custom
         xcodebuild ARCHS=arm64 ONLY_ACTIVE_ARCH=NO -project source/Irrlicht/Irrlicht.xcodeproj -configuration Release -target Irrlicht_OSX SYMROOT=build -sdk $SDKROOT -parallelizeTargets
-        rm -r -f $VCPKG_INSTALLATION_ROOT/irrlicht
-        mkdir -p ../irrlicht/lib
-        cp -r include ../irrlicht/include
-        cp source/Irrlicht/build/Release/libIrrlicht.a ../irrlicht/lib
+        rm -r -f $VCPKG_INSTALLATION_ROOT/installed/arm64-osx/include/irrlicht
+        mkdir -p $VCPKG_INSTALLATION_ROOT/installed/arm64-osx/include
+        mkdir -p $VCPKG_INSTALLATION_ROOT/installed/arm64-osx/lib
+        mkdir -p $VCPKG_INSTALLATION_ROOT/installed/arm64-osx/debug/lib
+        cp -r include $VCPKG_INSTALLATION_ROOT/installed/arm64-osx/include/irrlicht
+        cp source/Irrlicht/build/Release/libIrrlicht.a $VCPKG_INSTALLATION_ROOT/installed/arm64-osx/lib
+        cp source/Irrlicht/build/Release/libIrrlicht.a $VCPKG_INSTALLATION_ROOT/installed/arm64-osx/debug/lib
     # - name: Install SDL2 from vcpkg 
       # env:
         # SDKROOT: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
@@ -626,9 +631,8 @@ jobs:
           --triplet=arm64-osx
     - name: 7-Zip binaries
       run: |
-        mv irrlicht $VCPKG_INSTALLATION_ROOT || true
         cd $VCPKG_INSTALLATION_ROOT
-        7z a installed_aarch64-osx.7z installed scripts .vcpkg-root irrlicht
+        7z a installed_aarch64-osx.7z installed
     - name: Get upload endpoint
       id: get_endpoint
       if: startsWith(github.ref, 'refs/tags/')
