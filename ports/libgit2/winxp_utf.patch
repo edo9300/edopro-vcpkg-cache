@@ -1,5 +1,5 @@
 diff --git a/src/win32/utf-conv.c b/src/win32/utf-conv.c
-index 4bde3023ab6..a4f3c34d415 100644
+index 4bde3023ab6..b2d66b25e4b 100644
 --- a/src/win32/utf-conv.c
 +++ b/src/win32/utf-conv.c
 @@ -36,6 +36,19 @@ int git__utf8_to_16(wchar_t *dest, size_t dest_size, const char *src)
@@ -12,8 +12,8 @@ index 4bde3023ab6..a4f3c34d415 100644
 +
 +    /* Invalid code point check supported on Vista+ only */
 +    if(!inited) {
-+	flags = git_has_win32_version(6, 0, 0) ? WC_ERR_INVALID_CHARS : 0;
-+	inited = 1;
++		flags = git_has_win32_version(6, 0, 0) ? WC_ERR_INVALID_CHARS : 0;
++		inited = 1;
 +    }
 +
 +    return flags;
@@ -31,26 +31,21 @@ index 4bde3023ab6..a4f3c34d415 100644
  		git__set_errno();
  
  	return len;
-@@ -112,11 +125,12 @@ int git__utf8_to_16_alloc(wchar_t **dest, const char *src)
- int git__utf16_to_8_alloc(char **dest, const wchar_t *src)
- {
- 	int utf8_size;
-+	DWORD dwFlags = get_wc_flags();
- 
+@@ -116,7 +129,7 @@ int git__utf16_to_8_alloc(char **dest, const wchar_t *src)
  	*dest = NULL;
  
  	/* Length of -1 indicates NULL termination of the input string */
 -	utf8_size = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, src, -1, NULL, 0, NULL, NULL);
-+	utf8_size = WideCharToMultiByte(CP_UTF8, dwFlags, src, -1, NULL, 0, NULL, NULL);
++	utf8_size = WideCharToMultiByte(CP_UTF8, get_wc_flags(), src, -1, NULL, 0, NULL, NULL);
  
  	if (!utf8_size) {
  		git__set_errno();
-@@ -130,7 +144,7 @@ int git__utf16_to_8_alloc(char **dest, const wchar_t *src)
+@@ -130,7 +143,7 @@ int git__utf16_to_8_alloc(char **dest, const wchar_t *src)
  		return -1;
  	}
  
 -	utf8_size = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, src, -1, *dest, utf8_size, NULL, NULL);
-+	utf8_size = WideCharToMultiByte(CP_UTF8, dwFlags, src, -1, *dest, utf8_size, NULL, NULL);
++	utf8_size = WideCharToMultiByte(CP_UTF8, get_wc_flags(), src, -1, *dest, utf8_size, NULL, NULL);
  
  	if (!utf8_size) {
  		git__set_errno();

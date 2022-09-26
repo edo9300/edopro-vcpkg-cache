@@ -1,8 +1,8 @@
-diff --git a/src/path.c b/src/path.c
-index ec573220e90..3dd763e7656 100644
---- a/src/path.c
-+++ b/src/path.c
-@@ -1179,7 +1179,7 @@ int git_path_direach(
+diff --git a/src/fs_path.c b/src/fs_path.c
+index 7a657778a3b..01f25049fce 100644
+--- a/src/fs_path.c
++++ b/src/fs_path.c
+@@ -1182,7 +1182,7 @@ int git_fs_path_direach(
  	return error;
  }
  
@@ -11,53 +11,24 @@ index ec573220e90..3dd763e7656 100644
  
  /* Using _FIND_FIRST_EX_LARGE_FETCH may increase performance in Windows 7
   * and better.
-diff --git a/src/path.h b/src/path.h
-index dcf5652df05..9881b67b94c 100644
---- a/src/path.h
-+++ b/src/path.h
-@@ -454,7 +454,7 @@ extern bool git_path_does_fs_decompose_unicode(const char *root);
+diff --git a/src/fs_path.h b/src/fs_path.h
+index 222c44abcee..d4319329594 100644
+--- a/src/fs_path.h
++++ b/src/fs_path.h
+@@ -457,7 +457,7 @@ extern bool git_fs_path_does_decompose_unicode(const char *root);
  
- typedef struct git_path_diriter git_path_diriter;
+ typedef struct git_fs_path_diriter git_fs_path_diriter;
  
 -#if defined(GIT_WIN32) && !defined(__MINGW32__)
 +#if 0
  
- struct git_path_diriter
+ struct git_fs_path_diriter
  {
-diff --git a/src/util.h b/src/util.h
-index 68c2b1804e7..ac2e787015a 100644
---- a/src/util.h
-+++ b/src/util.h
-@@ -347,9 +347,22 @@ GIT_INLINE(void) git__memzero(void *data, size_t size)
- 
- GIT_INLINE(double) git__timer(void)
- {
--	/* GetTickCount64 returns the number of milliseconds that have
-+	/* We need the initial tick count to detect if the tick
-+	 * count has rolled over. */
-+	static DWORD initial_tick_count = 0;
-+
-+	/* GetTickCount returns the number of milliseconds that have
- 	 * elapsed since the system was started. */
--	return (double) GetTickCount64() / (double) 1000;
-+	DWORD count = GetTickCount();
-+
-+	if(initial_tick_count == 0) {
-+	initial_tick_count = count;
-+	} else if(count < initial_tick_count) {
-+	/* The tick count has rolled over - adjust for it. */
-+	count = (0xFFFFFFFF - initial_tick_count) + count;
-+	}
-+
-+	return (double)count / (double)1000;
- }
- 
- #elif __APPLE__
 diff --git a/src/win32/posix_w32.c b/src/win32/posix_w32.c
-index 7fcc472e970..831cfe2c898 100644
+index 5f7cd0c2645..82e7a710cf5 100644
 --- a/src/win32/posix_w32.c
 +++ b/src/win32/posix_w32.c
-@@ -433,8 +433,19 @@ static bool target_is_dir(const char *target, const char *path)
+@@ -431,8 +431,19 @@ static bool target_is_dir(const char *target, const char *path)
  	return isdir;
  }
  
@@ -67,7 +38,7 @@ index 7fcc472e970..831cfe2c898 100644
  {
 +	static CreateSymbolicLinkW_t pCreateSymbolicLinkW = NULL;
 +	if(pCreateSymbolicLinkW == NULL) {
-+	    HMODULE hModule = GetModuleHandleW(L"kernel32");
++	    HMODULE hModule = GetModuleHandleW(L"Kernel32.lib");
 +	    pCreateSymbolicLinkW = (CreateSymbolicLinkW_t)GetProcAddress(hModule, "CreateSymbolicLinkW");
 +	    if(pCreateSymbolicLinkW == NULL)
 +		pCreateSymbolicLinkW = (void*)1;
@@ -77,7 +48,7 @@ index 7fcc472e970..831cfe2c898 100644
  	git_win32_path target_w, path_w;
  	DWORD dwFlags;
  
-@@ -453,7 +464,7 @@ int p_symlink(const char *target, const char *path)
+@@ -451,7 +462,7 @@ int p_symlink(const char *target, const char *path)
  	if (target_is_dir(target, path))
  		dwFlags |= SYMBOLIC_LINK_FLAG_DIRECTORY;
  
@@ -86,11 +57,12 @@ index 7fcc472e970..831cfe2c898 100644
  		return -1;
  
  	return 0;
-@@ -663,10 +674,22 @@ int p_getcwd(char *buffer_out, size_t size)
+@@ -664,10 +675,23 @@ int p_getcwd(char *buffer_out, size_t size)
  	return 0;
  }
  
 +typedef DWORD(WINAPI* GetFinalPathNameByHandleW_t)(HANDLE, LPWSTR, DWORD, DWORD);
++
 +
  static int getfinalpath_w(
  	git_win32_path dest,
@@ -98,7 +70,7 @@ index 7fcc472e970..831cfe2c898 100644
  {
 +	static GetFinalPathNameByHandleW_t pGetFinalPathNameByHandleW = NULL;
 +	if(pGetFinalPathNameByHandleW == NULL) {
-+	    HMODULE hModule = GetModuleHandleW(L"kernel32");
++	    HMODULE hModule = GetModuleHandleW(L"Kernel32.lib");
 +	    pGetFinalPathNameByHandleW = (GetFinalPathNameByHandleW_t)GetProcAddress(hModule, "GetFinalPathNameByHandleW");
 +	    if(pGetFinalPathNameByHandleW == NULL)
 +		pGetFinalPathNameByHandleW = (void*)1;
@@ -109,12 +81,12 @@ index 7fcc472e970..831cfe2c898 100644
  	HANDLE hFile;
  	DWORD dwChars;
  
-@@ -680,7 +703,7 @@ static int getfinalpath_w(
+@@ -681,7 +705,7 @@ static int getfinalpath_w(
  		return -1;
  
  	/* Call GetFinalPathNameByHandle */
 -	dwChars = GetFinalPathNameByHandleW(hFile, dest, GIT_WIN_PATH_UTF16, FILE_NAME_NORMALIZED);
-+	dwChars = pGetFinalPathNameByHandleW(hFile, dest, GIT_WIN_PATH_UTF16, FILE_NAME_NORMALIZED);
++	dwChars = pGetFinalPathNameByHandleW (hFile, dest, GIT_WIN_PATH_UTF16, FILE_NAME_NORMALIZED);
  	CloseHandle(hFile);
  
  	if (!dwChars || dwChars >= GIT_WIN_PATH_UTF16)

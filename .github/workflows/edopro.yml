@@ -81,7 +81,7 @@ jobs:
     - name: Install dependencies
       shell: cmd
       run: |
-        vcpkg install --triplet x86-windows-static --overlay-ports=ports liblzma lua[cpp] freetype[bzip2,core,png,zlib] libevent sqlite3 bzip2 libjpeg-turbo libpng zlib curl[openssl] openssl libgit2-win32openssl[openssl] fmt nlohmann-json openal-soft libflac libvorbis discord-rpc-payload
+        vcpkg install --triplet x86-windows-static --overlay-ports=ports liblzma lua[cpp] freetype[bzip2,core,png,zlib] libevent sqlite3 bzip2 libjpeg-turbo libpng zlib curl[openssl] openssl libgit2 fmt nlohmann-json openal-soft libflac libvorbis discord-rpc-payload
     - name: Zip binaries
       shell: bash
       run: |
@@ -164,7 +164,7 @@ jobs:
     - name: Install dependencies
       shell: cmd
       run: |
-        vcpkg install --triplet x86-windows-static --overlay-ports=ports liblzma lua[cpp] freetype[bzip2,core,png,zlib] libevent sqlite3 bzip2 libjpeg-turbo libpng zlib curl[openssl] openssl libgit2-win32openssl[openssl] fmt nlohmann-json openal-soft libflac libvorbis discord-rpc-payload
+        vcpkg install --triplet x86-windows-static --overlay-ports=ports liblzma lua[cpp] freetype[bzip2,core,png,zlib] libevent sqlite3 bzip2 libjpeg-turbo libpng zlib curl[openssl] openssl libgit2 fmt nlohmann-json openal-soft libflac libvorbis discord-rpc-payload
     - name: Zip binaries
       shell: bash
       run: |
@@ -239,7 +239,7 @@ jobs:
           liblzma lua[cpp] freetype[bzip2,core,png,zlib] \
           libevent sqlite3 \
           bzip2 libjpeg-turbo libpng zlib \
-          curl[openssl] openssl libgit2-win32openssl[openssl] fmt nlohmann-json \
+          curl[openssl] openssl libgit2 fmt nlohmann-json \
           openal-soft \
           libflac libvorbis \
           discord-rpc-payload
@@ -318,7 +318,7 @@ jobs:
           liblzma lua[cpp] freetype[bzip2,core,png,zlib] \
           libevent sqlite3 \
           bzip2 libjpeg-turbo libpng zlib \
-          curl[openssl] openssl libgit2-win32openssl[openssl] fmt nlohmann-json \
+          curl[openssl] openssl libgit2 fmt nlohmann-json \
           openal-soft \
           libflac libvorbis \
           discord-rpc-payload
@@ -404,7 +404,7 @@ jobs:
     - name: Install dependencies
       shell: cmd
       run: |
-        vcpkg install --triplet x86-windows-static --overlay-ports=ports liblzma lua[cpp] freetype[bzip2,core,png,zlib] libevent sqlite3 bzip2 libjpeg-turbo libpng zlib curl[openssl] openssl libgit2-win32openssl[openssl] fmt nlohmann-json openal-soft libflac libvorbis discord-rpc-payload
+        vcpkg install --triplet x86-windows-static --overlay-ports=ports liblzma lua[cpp] freetype[bzip2,core,png,zlib] libevent sqlite3 bzip2 libjpeg-turbo libpng zlib curl[openssl] openssl libgit2 fmt nlohmann-json openal-soft libflac libvorbis discord-rpc-payload
     - name: Zip binaries
       shell: bash
       run: |
