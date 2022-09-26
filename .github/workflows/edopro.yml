@@ -542,6 +542,98 @@ jobs:
         asset_name: installed_x64-osx.7z
         asset_content_type: application/x-7z-compressed
 
+  x64-osx-lastsdk:
+    runs-on: macos-11
+    needs: create-release
+    if: contains(github.event.head_commit.message, '[skip-osx-sdk]') != true
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_13.2.1.app/Contents/Developer
+      MACOSX_DEPLOYMENT_TARGET: 10.11
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+    - name: Download 1-latest release's json
+      shell: bash
+      if: (startsWith(github.ref, 'refs/tags/') && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-osx-sdk]') != true)
+      run: |
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
+        echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
+        rm -f tmp.json
+    - name: Download latest release's json
+      shell: bash
+      if: (startsWith(github.ref, 'refs/tags/') != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-osx-sdk]') != true)
+      run: |
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o previous.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
+    - name: Download cached archive
+      shell: bash
+      if: (contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-osx-sdk]') != true)
+      run: |
+        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x64-osx.7z'){ console.log(obj['url']) }})")"
+    #needed to build mpg123
+    # - name: Install Homebrew prerequisites
+      # run: |
+        # brew install yasm
+    - name: Extract vcpkg cache
+      if: (contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-osx-sdk]') != true)
+      run: |
+        dir=$PWD
+        cd $VCPKG_INSTALLATION_ROOT
+        7z x $dir/installed_x64-osx.7z -aos
+        cd $dir
+        rm -f installed_x64-osx.7z
+    - name: Upgrade vcpkg dependencies
+      run: |
+        vcpkg upgrade --overlay-ports=ports --no-dry-run
+    - name: Build patched Irrlicht 1.9
+      if: (contains(github.event.head_commit.message, '[do-irr]') || contains(github.event.head_commit.message, '[new]') || contains(github.event.head_commit.message, '[new-osx-sdk]'))
+      env:
+        SDKROOT: /Applications/Xcode_13.2.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
+      run: |
+        curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name \
+          https://github.com/edo9300/irrlicht1-8-4/archive/1.9-custom.zip
+        7z x irrlicht1-8-4-1.9-custom.zip
+        cd irrlicht1-8-4-1.9-custom
+        xcodebuild -project source/Irrlicht/Irrlicht.xcodeproj -configuration Release -target Irrlicht_OSX SYMROOT=build -sdk $SDKROOT -parallelizeTargets
+        rm -r -f $VCPKG_INSTALLATION_ROOT/installed/x64-osx/include/irrlicht
+        mkdir -p $VCPKG_INSTALLATION_ROOT/installed/x64-osx/include
+        mkdir -p $VCPKG_INSTALLATION_ROOT/installed/x64-osx/lib
+        mkdir -p $VCPKG_INSTALLATION_ROOT/installed/x64-osx/debug/lib
+        cp -r include $VCPKG_INSTALLATION_ROOT/installed/x64-osx/include/irrlicht
+        cp source/Irrlicht/build/Release/libIrrlicht.a $VCPKG_INSTALLATION_ROOT/installed/x64-osx/lib
+        cp source/Irrlicht/build/Release/libIrrlicht.a $VCPKG_INSTALLATION_ROOT/installed/x64-osx/debug/lib
+    - name: Install vcpkg dependencies
+      run: |
+        vcpkg install --overlay-ports=ports \
+          liblzma libevent openssl libgit2 \
+          freetype[bzip2,core,png,zlib] \
+          openal-soft \
+          curl sqlite3 \
+          libflac libvorbis \
+          fmt nlohmann-json \
+          discord-rpc-payload
+    - name: 7-Zip binaries
+      run: |
+        cd $VCPKG_INSTALLATION_ROOT
+        7z a installed_x64-osx-last-sdk.7z installed
+    - name: Get upload endpoint
+      id: get_endpoint
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
+        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
+        echo ::set-output name=asset_path::$VCPKG_INSTALLATION_ROOT/installed_x64-osx-last-sdk.7z
+    - name: Upload binaries to GitHub
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        asset_path: ${{ steps.get_endpoint.outputs.asset_path }}
+        asset_name: installed_x64-osx-last-sdk.7z
+        asset_content_type: application/x-7z-compressed
+
   aarch64-osx:
     runs-on: macos-latest
     needs: create-release
@@ -585,21 +677,10 @@ jobs:
     - name: Upgrade vcpkg dependencies
       run: |
         vcpkg upgrade --overlay-ports=ports --no-dry-run --triplet=arm64-osx
-    # - name: Build patched Irrlicht
-      # if: (contains(github.event.head_commit.message, '[do-irr]') || contains(github.event.head_commit.message, '[new]'))
-      # run: |
-        # curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name \
-          # https://github.com/edo9300/irrlicht1-8-4/archive/master.zip
-        # 7z x irrlicht1-8-4-master.zip
-        # cd irrlicht1-8-4-master
-        # xcodebuild -project source/Irrlicht/MacOSX/MacOSX.xcodeproj -configuration Release -target libIrrlicht.a SYMROOT=build -sdk $SDKROOT -parallelizeTargets
-        # rm -r -f $VCPKG_INSTALLATION_ROOT/irrlicht
-        # mkdir -p ../irrlicht/lib
-        # cp -r include ../irrlicht/include
     - name: Build patched Irrlicht 1.9
       if: (contains(github.event.head_commit.message, '[do-irr]') || contains(github.event.head_commit.message, '[new]') || contains(github.event.head_commit.message, '[new-osx64]'))
       env:
-        SDKROOT: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
+        SDKROOT: /Applications/Xcode_13.2.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
       run: |
         curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name \
           https://github.com/edo9300/irrlicht1-8-4/archive/1.9-custom.zip
@@ -613,11 +694,6 @@ jobs:
         cp -r include $VCPKG_INSTALLATION_ROOT/installed/arm64-osx/include/irrlicht
         cp source/Irrlicht/build/Release/libIrrlicht.a $VCPKG_INSTALLATION_ROOT/installed/arm64-osx/lib
         cp source/Irrlicht/build/Release/libIrrlicht.a $VCPKG_INSTALLATION_ROOT/installed/arm64-osx/debug/lib
-    # - name: Install SDL2 from vcpkg 
-      # env:
-        # SDKROOT: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
-      # run: |
-        # vcpkg install sdl2
     - name: Install vcpkg dependencies
       run: |
         vcpkg install --overlay-ports=ports \
@@ -854,6 +930,20 @@ jobs:
         upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
         asset_path: ./installed_x64-osx.7z
         asset_name: installed_x64-osx.7z
+        asset_content_type: application/zip
+    - name: Download cached archive osx last sdk
+      if: contains(github.event.head_commit.message, '[skip-osx-sdk]')
+      run: |
+        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x64-osx-last-sdk.7z'){ console.log(obj['url']) }})")"
+    - name: Upload binaries to GitHub osx last sdk
+      if: contains(github.event.head_commit.message, '[skip-osx-sdk]')
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        asset_path: ./installed_x64-osx-last-sdk.7z
+        asset_name: installed_x64-osx-last-sdk.7z
         asset_content_type: application/zip
     - name: Download cached archive osx64
       if: contains(github.event.head_commit.message, '[skip-osx64]')
