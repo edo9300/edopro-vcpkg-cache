@@ -550,7 +550,7 @@ jobs:
       CC: /opt/cctools/bin/x86_64-macosx-clang
       CXX: /opt/cctools/bin/x86_64-macosx-clang++
       AR: /opt/cctools/bin/x86_64-apple-darwin11-ar
-      VCPKG_DEFAULT_TRIPLET: x64-osx-cctools
+      VCPKG_DEFAULT_TRIPLET: x64-osx
       VCPKG_OVERLAY_TRIPLETS: triplets
       VCPKG_OVERLAY_PORTS: ports
     steps:
@@ -660,7 +660,7 @@ jobs:
       CC: /opt/cctools/bin/arm64-macosx-clang
       CXX: /opt/cctools/bin/arm64-macosx-clang++
       AR: /opt/cctools/bin/arm-apple-darwin11-ar
-      VCPKG_DEFAULT_TRIPLET: arm64-osx-cctools
+      VCPKG_DEFAULT_TRIPLET: arm64-osx
       VCPKG_OVERLAY_TRIPLETS: triplets
       VCPKG_OVERLAY_PORTS: ports
     steps:
