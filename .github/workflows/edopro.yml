@@ -505,7 +505,7 @@ jobs:
         cp -r include $VCPKG_INSTALLATION_ROOT/installed/x64-osx/include/irrlicht
         cp source/Irrlicht/build/Release/libIrrlicht.a $VCPKG_INSTALLATION_ROOT/installed/x64-osx/lib
         cp source/Irrlicht/build/Release/libIrrlicht.a $VCPKG_INSTALLATION_ROOT/installed/x64-osx/debug/lib
-    # - name: Install SDL2 from vcpkg 
+    # - name: Install SDL2 from vcpkg
       # env:
         # SDKROOT: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
       # run: |
@@ -540,6 +540,226 @@ jobs:
         upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
         asset_path: ${{ steps.get_endpoint.outputs.asset_path }}
         asset_name: installed_x64-osx.7z
+        asset_content_type: application/x-7z-compressed
+
+  x64-osx-cctools:
+    runs-on: ubuntu-latest
+    needs: create-release
+    if: contains(github.event.head_commit.message, '[skip-osx-cctools]') != true
+    env:
+      CC: /opt/cctools/bin/x86_64-macosx-clang
+      CXX: /opt/cctools/bin/x86_64-macosx-clang++
+      AR: /opt/cctools/bin/x86_64-apple-darwin11-ar
+      VCPKG_DEFAULT_TRIPLET: x64-osx-cctools
+      VCPKG_OVERLAY_TRIPLETS: triplets
+      VCPKG_OVERLAY_PORTS: ports
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+    - name: Download cctools
+      run: |
+        cd /opt
+        wget https://github.com/edo9300/cctools-build/releases/download/preview/cctools.tar.xz
+        tar xf cctools.tar.xz
+        cd cctools/bin
+        ln x86_64-apple-darwin11-lipo -s lipo
+        ln llvm-install-name-tool -s install_name_tool
+    - name: Download 1-latest release's json
+      shell: bash
+      if: (startsWith(github.ref, 'refs/tags/') && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-osx-cctools]') != true)
+      run: |
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
+        echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
+        rm -f tmp.json
+    - name: Download latest release's json
+      shell: bash
+      if: (startsWith(github.ref, 'refs/tags/') != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-osx-cctools]') != true)
+      run: |
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o previous.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
+    - name: Download cached archive
+      shell: bash
+      if: (contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-osx-cctools]') != true)
+      run: |
+        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x64-osx-cctools.7z'){ console.log(obj['url']) }})")"
+    - name: Extract vcpkg cache
+      if: (contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-osx-cctools]') != true)
+      run: |
+        dir=$PWD
+        cd $VCPKG_INSTALLATION_ROOT
+        7z x $dir/installed_x64-osx-cctools.7z -aos
+        cd $dir
+        rm -f installed_x64-osx-cctools.7z
+    - name: Fix openal-soft framework paths
+      shell: bash
+      run: |
+        rm ./ports/openal-soft/portfile.cmake
+        mv ./ports/openal-soft/portfile-cctools.cmake ./ports/openal-soft/portfile.cmake
+    - name: Upgrade vcpkg dependencies
+      run: |
+        PATH=/opt/cctools/bin:$PATH vcpkg upgrade --no-dry-run
+    - name: Build patched Irrlicht 1.9
+      if: (contains(github.event.head_commit.message, '[do-irr]') || contains(github.event.head_commit.message, '[new]') || contains(github.event.head_commit.message, '[new-osx-cctools]'))
+      run: |
+        curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name \
+          https://github.com/edo9300/irrlicht1-8-4/archive/1.9-custom.zip
+        7z x irrlicht1-8-4-1.9-custom.zip
+        cd irrlicht1-8-4-1.9-custom
+        rm source/Irrlicht/Makefile
+        mv ../irrlicht-cctools-makefile source/Irrlicht/Makefile
+        #When building with cctools it doesn't like that a cpp file uses obj c features
+        mv source/Irrlicht/Irrlicht.cpp source/Irrlicht/Irrlicht.mm
+        mv source/Irrlicht/COSOperator.cpp source/Irrlicht/COSOperator.mm
+        rm -r -f $VCPKG_INSTALLATION_ROOT/installed/x64-osx/include/irrlicht
+        mkdir -p $VCPKG_INSTALLATION_ROOT/installed/x64-osx/include
+        mkdir -p $VCPKG_INSTALLATION_ROOT/installed/x64-osx/lib
+        mkdir -p $VCPKG_INSTALLATION_ROOT/installed/x64-osx/debug/lib
+        make -Csource/Irrlicht staticlib_osx NDEBUG=1 -j2
+        cp -r include $VCPKG_INSTALLATION_ROOT/installed/x64-osx/include/irrlicht
+        cp lib/MacOSX/libIrrlicht.a $VCPKG_INSTALLATION_ROOT/installed/x64-osx/lib
+        make -Csource/Irrlicht staticlib_osx NDEBUG=1 clean
+        make -Csource/Irrlicht staticlib_osx -j2
+        cp lib/MacOSX/libIrrlicht.a $VCPKG_INSTALLATION_ROOT/installed/x64-osx/debug/lib
+    - name: Install vcpkg dependencies
+      run: |
+        PATH=/opt/cctools/bin:$PATH vcpkg install \
+          liblzma libevent openssl libgit2 \
+          freetype[bzip2,core,png,zlib] \
+          openal-soft \
+          curl sqlite3 \
+          libflac libvorbis \
+          fmt nlohmann-json \
+          discord-rpc-payload
+    - name: 7-Zip binaries
+      run: |
+        cd $VCPKG_INSTALLATION_ROOT
+        7z a installed_x64-osx-cctools.7z installed
+    - name: Get upload endpoint
+      id: get_endpoint
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
+        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
+        echo ::set-output name=asset_path::$VCPKG_INSTALLATION_ROOT/installed_x64-osx-cctools.7z
+    - name: Upload binaries to GitHub
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        asset_path: ${{ steps.get_endpoint.outputs.asset_path }}
+        asset_name: installed_x64-osx-cctools.7z
+        asset_content_type: application/x-7z-compressed
+
+  aarch64-osx-cctools:
+    runs-on: ubuntu-latest
+    needs: create-release
+    if: contains(github.event.head_commit.message, '[skip-osx64-cctools]') != true
+    env:
+      CC: /opt/cctools/bin/arm64-macosx-clang
+      CXX: /opt/cctools/bin/arm64-macosx-clang++
+      AR: /opt/cctools/bin/arm-apple-darwin11-ar
+      VCPKG_DEFAULT_TRIPLET: arm64-osx-cctools
+      VCPKG_OVERLAY_TRIPLETS: triplets
+      VCPKG_OVERLAY_PORTS: ports
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+    - name: Download cctools
+      run: |
+        cd /opt
+        wget https://github.com/edo9300/cctools-build/releases/download/preview/cctools.tar.xz
+        tar xf cctools.tar.xz
+        cd cctools/bin
+        ln x86_64-apple-darwin11-lipo -s lipo
+        ln llvm-install-name-tool -s install_name_tool
+    - name: Download 1-latest release's json
+      shell: bash
+      if: (startsWith(github.ref, 'refs/tags/') && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-osx64-cctools]') != true)
+      run: |
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
+        echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
+        rm -f tmp.json
+    - name: Download latest release's json
+      shell: bash
+      if: (startsWith(github.ref, 'refs/tags/') != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-osx64-cctools]') != true)
+      run: |
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o previous.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
+    - name: Download cached archive
+      shell: bash
+      if: (contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-osx64-cctools]') != true)
+      run: |
+        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_aarch64-osx-cctools.7z'){ console.log(obj['url']) }})")"
+    - name: Fix openal-soft framework paths
+      shell: bash
+      run: |
+        rm ./ports/openal-soft/portfile.cmake
+        mv ./ports/openal-soft/portfile-cctools.cmake ./ports/openal-soft/portfile.cmake
+    - name: Extract vcpkg cache
+      if: (contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-osx64-cctools]') != true)
+      run: |
+        dir=$PWD
+        cd $VCPKG_INSTALLATION_ROOT
+        7z x $dir/installed_aarch64-osx-cctools.7z -aos
+        cd $dir
+        rm -f installed_aarch64-osx-cctools.7z
+    - name: Upgrade vcpkg dependencies
+      run: |
+        PATH=/opt/cctools/bin:$PATH vcpkg upgrade --no-dry-run
+    - name: Build patched Irrlicht 1.9
+      if: (contains(github.event.head_commit.message, '[do-irr]') || contains(github.event.head_commit.message, '[new]') || contains(github.event.head_commit.message, '[new-osx64-cctools]'))
+      run: |
+        curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name \
+          https://github.com/edo9300/irrlicht1-8-4/archive/1.9-custom.zip
+        7z x irrlicht1-8-4-1.9-custom.zip
+        cd irrlicht1-8-4-1.9-custom
+        rm source/Irrlicht/Makefile
+        mv ../irrlicht-cctools-makefile source/Irrlicht/Makefile
+        #When building with cctools it doesn't like that a cpp file uses obj c features
+        mv source/Irrlicht/Irrlicht.cpp source/Irrlicht/Irrlicht.mm
+        mv source/Irrlicht/COSOperator.cpp source/Irrlicht/COSOperator.mm
+        rm -r -f $VCPKG_INSTALLATION_ROOT/installed/arm64-osx/include/irrlicht
+        mkdir -p $VCPKG_INSTALLATION_ROOT/installed/arm64-osx/include
+        mkdir -p $VCPKG_INSTALLATION_ROOT/installed/arm64-osx/lib
+        mkdir -p $VCPKG_INSTALLATION_ROOT/installed/arm64-osx/debug/lib
+        make -Csource/Irrlicht staticlib_osx NDEBUG=1 -j2
+        cp -r include $VCPKG_INSTALLATION_ROOT/installed/arm64-osx/include/irrlicht
+        cp lib/MacOSX/libIrrlicht.a $VCPKG_INSTALLATION_ROOT/installed/arm64-osx/lib
+        make -Csource/Irrlicht staticlib_osx NDEBUG=1 clean
+        make -Csource/Irrlicht staticlib_osx -j2
+        cp lib/MacOSX/libIrrlicht.a $VCPKG_INSTALLATION_ROOT/installed/arm64-osx/debug/lib
+    - name: Install vcpkg dependencies
+      run: |
+        PATH=/opt/cctools/bin:$PATH vcpkg install \
+          liblzma libevent openssl libgit2 \
+          freetype[bzip2,core,png,zlib] \
+          openal-soft \
+          curl sqlite3 \
+          libflac libvorbis \
+          fmt nlohmann-json \
+          discord-rpc-payload
+    - name: 7-Zip binaries
+      run: |
+        cd $VCPKG_INSTALLATION_ROOT
+        7z a installed_aarch64-osx-cctools.7z installed
+    - name: Get upload endpoint
+      id: get_endpoint
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
+        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
+        echo ::set-output name=asset_path::$VCPKG_INSTALLATION_ROOT/installed_aarch64-osx-cctools.7z
+    - name: Upload binaries to GitHub
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        asset_path: ${{ steps.get_endpoint.outputs.asset_path }}
+        asset_name: installed_aarch64-osx-cctools.7z
         asset_content_type: application/x-7z-compressed
 
   x64-osx-lastsdk:
@@ -931,6 +1151,20 @@ jobs:
         asset_path: ./installed_x64-osx.7z
         asset_name: installed_x64-osx.7z
         asset_content_type: application/zip
+    - name: Download cached archive osx cctools
+      if: contains(github.event.head_commit.message, '[skip-osx-cctools]')
+      run: |
+        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x64-osx-cctools.7z'){ console.log(obj['url']) }})")"
+    - name: Upload binaries to GitHub osx cctools
+      if: contains(github.event.head_commit.message, '[skip-osx-cctools]')
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        asset_path: ./installed_x64-osx-cctools.7z
+        asset_name: installed_x64-osx-cctools.7z
+        asset_content_type: application/zip
     - name: Download cached archive osx last sdk
       if: contains(github.event.head_commit.message, '[skip-osx-sdk]')
       run: |
@@ -958,6 +1192,20 @@ jobs:
         upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
         asset_path: ./installed_aarch64-osx.7z
         asset_name: installed_aarch64-osx.7z
+        asset_content_type: application/zip
+    - name: Download cached archive osx64 cctools
+      if: contains(github.event.head_commit.message, '[skip-osx64-cctools]')
+      run: |
+        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_aarch64-osx-cctools.7z'){ console.log(obj['url']) }})")"
+    - name: Upload binaries to GitHub osx64 cctools
+      if: contains(github.event.head_commit.message, '[skip-osx64-cctools]')
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        asset_path: ./installed_aarch64-osx-cctools.7z
+        asset_name: installed_aarch64-osx-cctools.7z
         asset_content_type: application/zip
     - name: Download cached archive vs2015
       if: contains(github.event.head_commit.message, '[skip-win15]')
