@@ -1,0 +1,89 @@
+commit 711067778b896672dcbd251c66f33bb10ba7f758
+Author: Edoardo Lolletti <edoardo762@gmail.com>
+Date:   Wed Sep 28 12:32:18 2022 +0200
+
+    aa
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index c497ab1fe..085514988 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -96,7 +96,7 @@ include(AddCFlagIfSupported)
+ include(FindPkgLibraries)
+ include(FindThreads)
+ include(FindStatNsec)
+-include(Findfutimens)
++include(FindNewAppleLibs)
+ include(GNUInstallDirs)
+ include(IdeSplitSources)
+ include(FeatureSummary)
+diff --git a/cmake/FindNewAppleLibs.cmake b/cmake/FindNewAppleLibs.cmake
+new file mode 100644
+index 000000000..204179c43
+--- /dev/null
++++ b/cmake/FindNewAppleLibs.cmake
+@@ -0,0 +1,24 @@
++include(EnableWarnings)
++
++if(APPLE)
++	# We cannot simply CHECK_FUNCTION_EXISTS on macOS because
++	# MACOSX_DEPLOYMENT_TARGET may be set to a version in the past
++	# that doesn't have futimens.  Instead we need to enable warnings
++	# as errors, then check for the symbol existing in `sys/stat.h`,
++	# then reset warnings as errors.
++	list(APPEND CMAKE_REQUIRED_FLAGS -Werror=unguarded-availability)
++	list(APPEND CMAKE_REQUIRED_FLAGS -Werror)
++	check_symbol_exists(futimens sys/stat.h HAVE_FUTIMENS)
++
++	check_symbol_exists(qsort_s search.h HAVE_QSORT_S)
++
++	check_symbol_exists(getentropy sys/random.h HAVE_RAND_GETENTROPY)
++	list(REMOVE_ITEM CMAKE_REQUIRED_FLAGS -Werror)
++	list(REMOVE_ITEM CMAKE_REQUIRED_FLAGS -Werror=unguarded-availability)
++else()
++	check_function_exists(futimens HAVE_FUTIMENS)
++
++	check_function_exists(qsort_s HAVE_QSORT_S)
++
++	check_function_exists(getentropy HAVE_RAND_GETENTROPY)
++endif()
+diff --git a/cmake/Findfutimens.cmake b/cmake/Findfutimens.cmake
+deleted file mode 100644
+index 3449c9d54..000000000
+--- a/cmake/Findfutimens.cmake
++++ /dev/null
+@@ -1,14 +0,0 @@
+-include(EnableWarnings)
+-
+-if(APPLE)
+-	# We cannot simply CHECK_FUNCTION_EXISTS on macOS because
+-	# MACOSX_DEPLOYMENT_TARGET may be set to a version in the past
+-	# that doesn't have futimens.  Instead we need to enable warnings
+-	# as errors, then check for the symbol existing in `sys/stat.h`,
+-	# then reset warnings as errors.
+-	enable_warnings(error)
+-	check_symbol_exists(futimens sys/stat.h HAVE_FUTIMENS)
+-	disable_warnings(error)
+-else()
+-	check_function_exists(futimens HAVE_FUTIMENS)
+-endif()
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index e7b54d036..f15bd54ea 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -53,9 +53,13 @@ check_prototype_definition(qsort_r
+ 	"void qsort_r(void *base, size_t nmemb, size_t size, int (*compar)(const void *, const void *, void *), void *arg)"
+ 	"" "stdlib.h" GIT_QSORT_R_GNU)
+ 
+-check_function_exists(qsort_s GIT_QSORT_S)
++if(HAVE_QSORT_S)
++	set(GIT_QSORT_S 1)
++endif ()
+ 
+-check_function_exists(getentropy GIT_RAND_GETENTROPY)
++if(HAVE_RAND_GETENTROPY)
++	set(GIT_RAND_GETENTROPY 1)
++endif ()
+ 
+ # Find required dependencies
+ 

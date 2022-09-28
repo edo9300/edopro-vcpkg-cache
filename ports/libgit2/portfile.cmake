@@ -9,6 +9,7 @@ vcpkg_from_github(
         native_win_cert.patch
         winxp_path.patch
         winxp_utf.patch
+        cctools-libs.patch
 )
 
 file(REMOVE_RECURSE "${SOURCE_PATH}/cmake/FindPCRE.cmake")
