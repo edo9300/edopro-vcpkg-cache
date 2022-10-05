@@ -595,6 +595,8 @@ jobs:
       run: |
         rm ./ports/openal-soft/portfile.cmake
         mv ./ports/openal-soft/portfile-cctools.cmake ./ports/openal-soft/portfile.cmake
+        rm ./ports/libevent/portfile.cmake
+        mv ./ports/libevent/portfile-no-clock-gettime.cmake ./ports/libevent/portfile.cmake
     - name: Upgrade vcpkg dependencies
       run: |
         PATH=/opt/cctools/bin:$PATH vcpkg upgrade --no-dry-run
