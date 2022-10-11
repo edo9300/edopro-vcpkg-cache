@@ -1018,48 +1018,50 @@ jobs:
         asset_name: installed_x64-linux.7z
         asset_content_type: application/x-7z-compressed
 
-  x64-linux-ubuntu-20:
-    runs-on: ubuntu-20.04
+  x64-linux-docker-gcc7:
+    runs-on: ubuntu-latest
+    container: ubuntu:18.04
     needs: create-release
-    if: contains(github.event.head_commit.message, '[skip-linux-ubuntu-20]') != true
+    if: contains(github.event.head_commit.message, '[skip-linux-docker-gcc7]') != true
     env:
-      CC: gcc-7
-      CXX: g++-7
+      VCPKG_INSTALLATION_ROOT: /tmp/vcpkg
     steps:
     - uses: actions/checkout@v1
       with:
         fetch-depth: 1
     - name: Install APT prerequisities
       run: |
-        sudo apt-get update
-        sudo apt-get install -y yasm libgl1-mesa-dev libasound2-dev libpulse-dev libwayland-dev libxkbcommon-dev
-    - name: Install gcc 7
-      run: |
-        sudo sh -c 'echo "deb [arch=amd64] http://archive.ubuntu.com/ubuntu focal main universe" >> /etc/apt/sources.list'
-        sudo apt update
-        sudo apt install -y g++-7
+        apt update
+        apt-get install -y sudo yasm libgl1-mesa-dev libasound2-dev libpulse-dev libwayland-dev libxkbcommon-dev \
+            g++ build-essential curl p7zip-full p7zip-rar zip unzip tar pkg-config git nodejs
     - name: Download 1-latest release's json
-      if: (startsWith(github.ref, 'refs/tags/') && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-linux-ubuntu-20]') != true)
+      if: (startsWith(github.ref, 'refs/tags/') && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-linux-docker-gcc7]') != true)
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
         echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
         rm -f tmp.json
     - name: Download latest release's json
-      if: (startsWith(github.ref, 'refs/tags/') != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-linux-ubuntu-20]') != true)
+      if: (startsWith(github.ref, 'refs/tags/') != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-linux-docker-gcc7]') != true)
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o previous.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
     - name: Download cached archive
-      if: (contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-linux-ubuntu-20]') != true)
+      if: (contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-linux-docker-gcc7]') != true)
       run: |
-        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x64-linux-ubuntu-20.7z'){ console.log(obj['url']) }})")"
+        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x64-linux-docker-gcc7.7z'){ console.log(obj['url']) }})")"
+    - name: Install vcpkg
+      run: |
+        git clone https://github.com/microsoft/vcpkg /tmp/vcpkg
+        cd /tmp/vcpkg
+        ./bootstrap-vcpkg.sh --disableMetrics
+        echo "PATH=/tmp/vcpkg:$PATH" >> $GITHUB_ENV
     - name: Extract vcpkg cache
-      if: (contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-linux-ubuntu-20]') != true)
+      if: (contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-linux-docker-gcc7]') != true)
       run: |
         dir=$PWD
         cd $VCPKG_INSTALLATION_ROOT
-        7z x $dir/installed_x64-linux-ubuntu-20.7z -aos
+        7z x $dir/installed_x64-linux-docker-gcc7.7z -aos
         cd $dir
-        rm -f installed_x64-linux-ubuntu-20.7z
+        rm -f installed_x64-linux-docker-gcc7.7z
     - name: Upgrade vcpkg dependencies
       run: |
         vcpkg upgrade --overlay-ports=ports --no-dry-run
@@ -1076,14 +1078,14 @@ jobs:
     - name: 7-Zip binaries
       run: |
         cd $VCPKG_INSTALLATION_ROOT
-        7z a installed_x64-linux-ubuntu-20.7z installed scripts .vcpkg-root
+        7z a installed_x64-linux-docker-gcc7.7z installed scripts .vcpkg-root
     - name: Get upload endpoint
       id: get_endpoint
       if: startsWith(github.ref, 'refs/tags/')
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
         echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
-        echo ::set-output name=asset_path::$VCPKG_INSTALLATION_ROOT/installed_x64-linux-ubuntu-20.7z
+        echo ::set-output name=asset_path::$VCPKG_INSTALLATION_ROOT/installed_x64-linux-docker-gcc7.7z
     - name: Upload binaries to GitHub
       if: startsWith(github.ref, 'refs/tags/')
       uses: actions/upload-release-asset@v1.0.1
@@ -1092,7 +1094,7 @@ jobs:
       with:
         upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
         asset_path: ${{ steps.get_endpoint.outputs.asset_path }}
-        asset_name: installed_x64-linux-ubuntu-20.7z
+        asset_name: installed_x64-linux-docker-gcc7.7z
         asset_content_type: application/x-7z-compressed
 
   aarch64-linux:
@@ -1203,18 +1205,18 @@ jobs:
         asset_name: installed_x64-linux.7z
         asset_content_type: application/x-7z-compressed
     - name: Download cached archive linux ubuntu 20
-      if: contains(github.event.head_commit.message, '[skip-linux-ubuntu-20]')
+      if: contains(github.event.head_commit.message, '[skip-linux-docker-gcc7]')
       run: |
-        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x64-linux-ubuntu-20.7z'){ console.log(obj['url']) }})")"
+        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x64-linux-docker-gcc7.7z'){ console.log(obj['url']) }})")"
     - name: Upload binaries to GitHub linux ubuntu 20
-      if: contains(github.event.head_commit.message, '[skip-linux-ubuntu-20]')
+      if: contains(github.event.head_commit.message, '[skip-linux-docker-gcc7]')
       uses: actions/upload-release-asset@v1.0.1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
-        asset_path: ./installed_x64-linux-ubuntu-20.7z
-        asset_name: installed_x64-linux-ubuntu-20.7z
+        asset_path: ./installed_x64-linux-docker-gcc7.7z
+        asset_name: installed_x64-linux-docker-gcc7.7z
         asset_content_type: application/x-7z-compressed
     - name: Download cached archive linux64
       if: contains(github.event.head_commit.message, '[skip-linux64]')
