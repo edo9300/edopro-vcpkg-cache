@@ -1175,6 +1175,7 @@ jobs:
       CC: /opt/cctools/bin/arm64-iphoneos-clang
       CXX: /opt/cctools/bin/arm64-iphoneos-clang++
       AR: /opt/cctools/bin/arm-apple-darwin11-ar
+      RANLIB: /opt/cctools/bin/arm-apple-darwin11-ranlib
       VCPKG_DEFAULT_TRIPLET: arm64-ios
       VCPKG_OVERLAY_TRIPLETS: triplets
       VCPKG_OVERLAY_PORTS: ports
@@ -1189,6 +1190,7 @@ jobs:
         tar xf cctools-ios.tar.xz
         cd cctools/bin
         ln arm-apple-darwin11-lipo -s lipo
+        ln arm-apple-darwin11-ranlib -s ranlib
         ln llvm-install-name-tool -s install_name_tool
         cd ../sdk
         ln iPhoneOS16.1.sdk -s iPhoneOS.sdk
@@ -1281,6 +1283,7 @@ jobs:
       CC: /opt/cctools/bin/armv7-iphoneos-clang
       CXX: /opt/cctools/bin/armv7-iphoneos-clang++
       AR: /opt/cctools/bin/arm-apple-darwin11-ar
+      RANLIB: /opt/cctools/bin/arm-apple-darwin11-ranlib
       VCPKG_DEFAULT_TRIPLET: arm-ios
       VCPKG_OVERLAY_TRIPLETS: triplets
       VCPKG_OVERLAY_PORTS: ports
@@ -1295,6 +1298,7 @@ jobs:
         tar xf cctools-ios.tar.xz
         cd cctools/bin
         ln arm-apple-darwin11-lipo -s lipo
+        ln arm-apple-darwin11-ranlib -s ranlib
         ln llvm-install-name-tool -s install_name_tool
         cd ../sdk
         ln iPhoneOS13.0.sdk -s iPhoneOS.sdk
