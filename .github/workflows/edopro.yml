@@ -1324,9 +1324,9 @@ jobs:
       run: |
         dir=$PWD
         cd $VCPKG_INSTALLATION_ROOT
-        7z x $dir/installed_aarch64-ios-cctools.7z -aos
+        7z x $dir/installed_armv7-ios-cctools.7z -aos
         cd $dir
-        rm -f installed_aarch64-ios-cctools.7z
+        rm -f installed_armv7-ios-cctools.7z
     - name: Upgrade vcpkg dependencies
       run: |
         PATH=/opt/cctools/bin:$PATH vcpkg upgrade --no-dry-run
@@ -1342,16 +1342,17 @@ jobs:
         #When building with cctools it doesn't like that a cpp file uses obj c features
         mv source/Irrlicht/Irrlicht.cpp source/Irrlicht/Irrlicht.mm
         mv source/Irrlicht/COSOperator.cpp source/Irrlicht/COSOperator.mm
-        rm -r -f $VCPKG_INSTALLATION_ROOT/installed/armv7-ios/include/irrlicht
-        mkdir -p $VCPKG_INSTALLATION_ROOT/installed/armv7-ios/include
-        mkdir -p $VCPKG_INSTALLATION_ROOT/installed/armv7-ios/lib
-        mkdir -p $VCPKG_INSTALLATION_ROOT/installed/armv7-ios/debug/lib
+        rm -r -f $VCPKG_INSTALLATION_ROOT/installed/armv7-ios
+        rm -r -f $VCPKG_INSTALLATION_ROOT/installed/arm-ios/include/irrlicht
+        mkdir -p $VCPKG_INSTALLATION_ROOT/installed/arm-ios/include
+        mkdir -p $VCPKG_INSTALLATION_ROOT/installed/arm-ios/lib
+        mkdir -p $VCPKG_INSTALLATION_ROOT/installed/arm-ios/debug/lib
         make -Csource/Irrlicht staticlib_ios NDEBUG=1 -j2
-        cp -r include $VCPKG_INSTALLATION_ROOT/installed/armv7-ios/include/irrlicht
-        cp lib/IOS/libIrrlicht.a $VCPKG_INSTALLATION_ROOT/installed/armv7-ios/lib
+        cp -r include $VCPKG_INSTALLATION_ROOT/installed/arm-ios/include/irrlicht
+        cp lib/IOS/libIrrlicht.a $VCPKG_INSTALLATION_ROOT/installed/arm-ios/lib
         make -Csource/Irrlicht staticlib_ios NDEBUG=1 clean
         make -Csource/Irrlicht staticlib_ios -j2
-        cp lib/IOS/libIrrlicht.a $VCPKG_INSTALLATION_ROOT/installed/armv7-ios/debug/lib
+        cp lib/IOS/libIrrlicht.a $VCPKG_INSTALLATION_ROOT/installed/arm-ios/debug/lib
     - name: Install vcpkg dependencies
       run: |
         PATH=/opt/cctools/bin:$PATH vcpkg install \
