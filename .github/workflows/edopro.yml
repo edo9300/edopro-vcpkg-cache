@@ -1284,7 +1284,6 @@ jobs:
         #When building with cctools it doesn't like that a cpp file uses obj c features
         mv source/Irrlicht/Irrlicht.cpp source/Irrlicht/Irrlicht.mm
         mv source/Irrlicht/COSOperator.cpp source/Irrlicht/COSOperator.mm
-        rm -r -f $VCPKG_INSTALLATION_ROOT/installed/armv7-ios
         rm -r -f $VCPKG_INSTALLATION_ROOT/installed/arm-ios/include/irrlicht
         mkdir -p $VCPKG_INSTALLATION_ROOT/installed/arm-ios/include
         mkdir -p $VCPKG_INSTALLATION_ROOT/installed/arm-ios/lib
@@ -1326,6 +1325,222 @@ jobs:
         asset_name: installed_armv7-ios-cctools.7z
         asset_content_type: application/x-7z-compressed
 
+  x64-iossim-cctools:
+    runs-on: ubuntu-latest
+    needs: create-release
+    if: contains(github.event.head_commit.message, '[skip-iossim-cctools]') != true
+    env:
+      CC: /opt/cctools/bin/x86_64-iphonesimulator-clang
+      CXX: /opt/cctools/bin/x86_64-iphonesimulator-clang++
+      AR: /opt/cctools/bin/x86_64-apple-darwin11-ar
+      RANLIB: /opt/cctools/bin/x86_64-apple-darwin11-ranlib
+      VCPKG_DEFAULT_TRIPLET: x64-iossim
+      VCPKG_OVERLAY_TRIPLETS: triplets
+      VCPKG_OVERLAY_PORTS: ports
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+    - name: Download cctools
+      run: |
+        cd /opt
+        wget https://github.com/edo9300/cctools-build/releases/download/preview/cctools-ios.tar.xz
+        tar xf cctools-ios.tar.xz
+        cd cctools/bin
+        ln arm-apple-darwin11-lipo -s lipo
+        ln arm-apple-darwin11-ranlib -s ranlib
+        ln llvm-install-name-tool -s install_name_tool
+        cd ../sdk
+        ln iPhoneSimulator16.1.sdk -s iPhoneSimulator.sdk
+    - name: Download 1-latest release's json
+      shell: bash
+      if: (startsWith(github.ref, 'refs/tags/') && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-iossim-cctools]') != true)
+      run: |
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
+        echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
+        rm -f tmp.json
+    - name: Download latest release's json
+      shell: bash
+      if: (startsWith(github.ref, 'refs/tags/') != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-iossim-cctools]') != true)
+      run: |
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o previous.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
+    - name: Download cached archive
+      shell: bash
+      if: (contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-iossim-cctools]') != true)
+      run: |
+        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x64-iossim-cctools.7z'){ console.log(obj['url']) }})")"
+    - name: Extract vcpkg cache
+      if: (contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-iossim-cctools]') != true)
+      run: |
+        dir=$PWD
+        cd $VCPKG_INSTALLATION_ROOT
+        7z x $dir/installed_x64-iossim-cctools.7z -aos
+        cd $dir
+        rm -f installed_x64-iossim-cctools.7z
+    - name: Upgrade vcpkg dependencies
+      run: |
+        PATH=/opt/cctools/bin:$PATH vcpkg upgrade --no-dry-run
+    - name: Build patched Irrlicht 1.9
+      if: (contains(github.event.head_commit.message, '[do-irr]') || contains(github.event.head_commit.message, '[new]') || contains(github.event.head_commit.message, '[new-iossim-cctools]'))
+      run: |
+        curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name \
+          https://github.com/edo9300/irrlicht1-8-4/archive/1.9-custom.zip
+        7z x irrlicht1-8-4-1.9-custom.zip
+        cd irrlicht1-8-4-1.9-custom
+        rm source/Irrlicht/Makefile
+        mv ../irrlicht-cctools-makefile source/Irrlicht/Makefile
+        #When building with cctools it doesn't like that a cpp file uses obj c features
+        mv source/Irrlicht/Irrlicht.cpp source/Irrlicht/Irrlicht.mm
+        mv source/Irrlicht/COSOperator.cpp source/Irrlicht/COSOperator.mm
+        rm -r -f $VCPKG_INSTALLATION_ROOT/installed/x64-iossim/include/irrlicht
+        mkdir -p $VCPKG_INSTALLATION_ROOT/installed/x64-iossim/include
+        mkdir -p $VCPKG_INSTALLATION_ROOT/installed/x64-iossim/lib
+        mkdir -p $VCPKG_INSTALLATION_ROOT/installed/x64-iossim/debug/lib
+        make -Csource/Irrlicht staticlib_ios NDEBUG=1 -j2
+        cp -r include $VCPKG_INSTALLATION_ROOT/installed/x64-iossim/include/irrlicht
+        cp lib/IOS/libIrrlicht.a $VCPKG_INSTALLATION_ROOT/installed/x64-iossim/lib
+        make -Csource/Irrlicht staticlib_ios NDEBUG=1 clean
+        make -Csource/Irrlicht staticlib_ios -j2
+        cp lib/IOS/libIrrlicht.a $VCPKG_INSTALLATION_ROOT/installed/x64-iossim/debug/lib
+    - name: Install vcpkg dependencies
+      run: |
+        PATH=/opt/cctools/bin:$PATH vcpkg install \
+          liblzma libevent openssl libgit2 \
+          freetype[bzip2,core,png,zlib] \
+          openal-soft \
+          curl sqlite3 \
+          libflac libvorbis \
+          fmt nlohmann-json
+    - name: 7-Zip binaries
+      run: |
+        cd $VCPKG_INSTALLATION_ROOT
+        7z a installed_x64-iossim-cctools.7z installed
+    - name: Get upload endpoint
+      id: get_endpoint
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
+        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
+        echo ::set-output name=asset_path::$VCPKG_INSTALLATION_ROOT/installed_x64-iossim-cctools.7z
+    - name: Upload binaries to GitHub
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        asset_path: ${{ steps.get_endpoint.outputs.asset_path }}
+        asset_name: installed_x64-iossim-cctools.7z
+        asset_content_type: application/x-7z-compressed
+
+  aarch64-iossim-cctools:
+    runs-on: ubuntu-latest
+    needs: create-release
+    if: contains(github.event.head_commit.message, '[skip-iossim64-cctools]') != true
+    env:
+      CC: /opt/cctools/bin/arm64-iphonesimulator-clang
+      CXX: /opt/cctools/bin/arm64-iphonesimulator-clang++
+      AR: /opt/cctools/bin/arm-apple-darwin11-ar
+      RANLIB: /opt/cctools/bin/arm-apple-darwin11-ranlib
+      VCPKG_DEFAULT_TRIPLET: arm64-iossim
+      VCPKG_OVERLAY_TRIPLETS: triplets
+      VCPKG_OVERLAY_PORTS: ports
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+    - name: Download cctools
+      run: |
+        cd /opt
+        wget https://github.com/edo9300/cctools-build/releases/download/preview/cctools-ios.tar.xz
+        tar xf cctools-ios.tar.xz
+        cd cctools/bin
+        ln arm-apple-darwin11-lipo -s lipo
+        ln arm-apple-darwin11-ranlib -s ranlib
+        ln llvm-install-name-tool -s install_name_tool
+        cd ../sdk
+        ln iPhoneSimulator16.1.sdk -s iPhoneSimulator.sdk
+    - name: Download 1-latest release's json
+      shell: bash
+      if: (startsWith(github.ref, 'refs/tags/') && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-iossim64-cctools]') != true)
+      run: |
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
+        echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
+        rm -f tmp.json
+    - name: Download latest release's json
+      shell: bash
+      if: (startsWith(github.ref, 'refs/tags/') != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-iossim64-cctools]') != true)
+      run: |
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o previous.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
+    - name: Download cached archive
+      shell: bash
+      if: (contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-iossim64-cctools]') != true)
+      run: |
+        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_aarch64-iossim-cctools.7z'){ console.log(obj['url']) }})")"
+    - name: Extract vcpkg cache
+      if: (contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-iossim64-cctools]') != true)
+      run: |
+        dir=$PWD
+        cd $VCPKG_INSTALLATION_ROOT
+        7z x $dir/installed_aarch64-iossim-cctools.7z -aos
+        cd $dir
+        rm -f installed_aarch64-iossim-cctools.7z
+    - name: Upgrade vcpkg dependencies
+      run: |
+        PATH=/opt/cctools/bin:$PATH vcpkg upgrade --no-dry-run
+    - name: Build patched Irrlicht 1.9
+      if: (contains(github.event.head_commit.message, '[do-irr]') || contains(github.event.head_commit.message, '[new]') || contains(github.event.head_commit.message, '[new-iossim64-cctools]'))
+      run: |
+        curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name \
+          https://github.com/edo9300/irrlicht1-8-4/archive/1.9-custom.zip
+        7z x irrlicht1-8-4-1.9-custom.zip
+        cd irrlicht1-8-4-1.9-custom
+        rm source/Irrlicht/Makefile
+        mv ../irrlicht-cctools-makefile source/Irrlicht/Makefile
+        #When building with cctools it doesn't like that a cpp file uses obj c features
+        mv source/Irrlicht/Irrlicht.cpp source/Irrlicht/Irrlicht.mm
+        mv source/Irrlicht/COSOperator.cpp source/Irrlicht/COSOperator.mm
+        rm -r -f $VCPKG_INSTALLATION_ROOT/installed/arm64-iossim/include/irrlicht
+        mkdir -p $VCPKG_INSTALLATION_ROOT/installed/arm64-iossim/include
+        mkdir -p $VCPKG_INSTALLATION_ROOT/installed/arm64-iossim/lib
+        mkdir -p $VCPKG_INSTALLATION_ROOT/installed/arm64-iossim/debug/lib
+        make -Csource/Irrlicht staticlib_ios NDEBUG=1 -j2
+        cp -r include $VCPKG_INSTALLATION_ROOT/installed/arm64-iossim/include/irrlicht
+        cp lib/IOS/libIrrlicht.a $VCPKG_INSTALLATION_ROOT/installed/arm64-iossim/lib
+        make -Csource/Irrlicht staticlib_ios NDEBUG=1 clean
+        make -Csource/Irrlicht staticlib_ios -j2
+        cp lib/IOS/libIrrlicht.a $VCPKG_INSTALLATION_ROOT/installed/arm64-iossim/debug/lib
+    - name: Install vcpkg dependencies
+      run: |
+        PATH=/opt/cctools/bin:$PATH vcpkg install \
+          liblzma libevent openssl libgit2 \
+          freetype[bzip2,core,png,zlib] \
+          openal-soft \
+          curl sqlite3 \
+          libflac libvorbis \
+          fmt nlohmann-json
+    - name: 7-Zip binaries
+      run: |
+        cd $VCPKG_INSTALLATION_ROOT
+        7z a installed_aarch64-iossim-cctools.7z installed
+    - name: Get upload endpoint
+      id: get_endpoint
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
+        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
+        echo ::set-output name=asset_path::$VCPKG_INSTALLATION_ROOT/installed_aarch64-iossim-cctools.7z
+    - name: Upload binaries to GitHub
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        asset_path: ${{ steps.get_endpoint.outputs.asset_path }}
+        asset_name: installed_aarch64-iossim-cctools.7z
+        asset_content_type: application/x-7z-compressed
+
   passthroughs:
     runs-on: ubuntu-latest
     needs: create-release
@@ -1338,6 +1553,7 @@ jobs:
         || contains(github.event.head_commit.message, '[skip-osx64]')
         || contains(github.event.head_commit.message, '[skip-ios-cctools]')
         || contains(github.event.head_commit.message, '[skip-iosv7-cctools]')
+        || contains(github.event.head_commit.message, '[skip-iossim-cctools]')
         || contains(github.event.head_commit.message, '[skip-linux]')
         || contains(github.event.head_commit.message, '[skip-linux64]'))
         && startsWith(github.ref, 'refs/tags/'))
@@ -1477,6 +1693,34 @@ jobs:
         upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
         asset_path: ./installed_armv7-ios-cctools.7z
         asset_name: installed_armv7-ios-cctools.7z
+        asset_content_type: application/zip
+    - name: Download cached archive ios simulator cctools
+      if: contains(github.event.head_commit.message, '[skip-iossim-cctools]')
+      run: |
+        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x64-iossim-cctools.7z'){ console.log(obj['url']) }})")"
+    - name: Upload binaries to GitHub ios simulator cctools
+      if: contains(github.event.head_commit.message, '[skip-iossim-cctools]')
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        asset_path: ./installed_x64-iossim-cctools.7z
+        asset_name: installed_x64-iossim-cctools.7z
+        asset_content_type: application/zip
+    - name: Download cached archive ios simulator aarch64 cctools
+      if: contains(github.event.head_commit.message, '[skip-iossim64-cctools]')
+      run: |
+        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_aarch64-iossim-cctools.7z'){ console.log(obj['url']) }})")"
+    - name: Upload binaries to GitHub ios simulator aarch64 cctools
+      if: contains(github.event.head_commit.message, '[skip-iossim64-cctools]')
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        asset_path: ./installed_aarch64-iossim-cctools.7z
+        asset_name: installed_aarch64-iossim-cctools.7z
         asset_content_type: application/zip
     - name: Download cached archive vs2015
       if: contains(github.event.head_commit.message, '[skip-win15]')
