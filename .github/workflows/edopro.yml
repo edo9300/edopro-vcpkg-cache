@@ -3,15 +3,18 @@ on: push
 jobs:
   create-release:
     runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
     steps:
     - name: Create release
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: actions/create-release@v1
+      id: create_release
+      if: github.ref_type == 'tag'
+      uses: shogo82148/actions-create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ github.ref }}
-        release_name: ${{ github.ref }}
+        tag_name: ${{ github.ref_name }}
+        release_name: ${{ github.ref_name }}
         draft: false
         prerelease: false
 
@@ -25,14 +28,14 @@ jobs:
         fetch-depth: 1
     - name: Download 1-latest release's json
       shell: bash
-      if: (startsWith(github.ref, 'refs/tags/') && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-win]') != true)
+      if: (github.ref_type == 'tag' && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-win]') != true)
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
         echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
         rm -f tmp.json
     - name: Download latest release's json
       shell: bash
-      if: (startsWith(github.ref, 'refs/tags/') != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-win]') != true)
+      if: (github.ref_type == 'tag' != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-win]') != true)
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o previous.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
     - name: Download cached archive
@@ -87,24 +90,21 @@ jobs:
       run: |
         cd $VCPKG_INSTALLATION_ROOT
         "$PROGRAMFILES/7-Zip/7z.exe" a -tzip installed_x86-windows-static.zip installed scripts .vcpkg-root vcpkg.exe
-    - name: Get upload endpoint
+    - name: Set vcpkg archive path
       id: get_endpoint
-      if: startsWith(github.ref, 'refs/tags/')
+      if: github.ref_type == 'tag'
       shell: bash
       run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
-        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
-        echo ::set-output name=asset_path::$VCPKG_INSTALLATION_ROOT/installed_x86-windows-static.zip
+        echo "asset_path=$VCPKG_INSTALLATION_ROOT/installed_x86-windows-static.zip" >> $GITHUB_OUTPUT
     - name: Upload binaries to GitHub
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: actions/upload-release-asset@v1.0.1
+      if: github.ref_type == 'tag'
+      uses: shogo82148/actions-upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
         asset_path: ${{ steps.get_endpoint.outputs.asset_path }}
         asset_name: installed_x86-windows-static.zip
-        asset_content_type: application/zip
 
   x86-windows-static-vs2017:
     runs-on: windows-2022
@@ -116,14 +116,14 @@ jobs:
         fetch-depth: 1
     - name: Download 1-latest release's json
       shell: bash
-      if: (startsWith(github.ref, 'refs/tags/') && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-win17]') != true)
+      if: (github.ref_type == 'tag' && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-win17]') != true)
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
         echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
         rm -f tmp.json
     - name: Download latest release's json
       shell: bash
-      if: (startsWith(github.ref, 'refs/tags/') != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-win17]') != true)
+      if: (github.ref_type == 'tag' != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-win17]') != true)
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o previous.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
     - name: Download cached archive
@@ -170,24 +170,21 @@ jobs:
       run: |
         cd $VCPKG_INSTALLATION_ROOT
         "$PROGRAMFILES/7-Zip/7z.exe" a -tzip installed_x86-windows-static-vs2017.zip installed scripts .vcpkg-root vcpkg.exe
-    - name: Get upload endpoint
+    - name: Set vcpkg archive path
       id: get_endpoint
-      if: startsWith(github.ref, 'refs/tags/')
+      if: github.ref_type == 'tag'
       shell: bash
       run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
-        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
-        echo ::set-output name=asset_path::$VCPKG_INSTALLATION_ROOT/installed_x86-windows-static-vs2017.zip
+        echo "asset_path=$VCPKG_INSTALLATION_ROOT/installed_x86-windows-static-vs2017.zip" >> $GITHUB_OUTPUT
     - name: Upload binaries to GitHub
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: actions/upload-release-asset@v1.0.1
+      if: github.ref_type == 'tag'
+      uses: shogo82148/actions-upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
         asset_path: ${{ steps.get_endpoint.outputs.asset_path }}
         asset_name: installed_x86-windows-static-vs2017.zip
-        asset_content_type: application/zip
 
   x86-windows-static-vs2022:
     runs-on: windows-2022
@@ -199,14 +196,14 @@ jobs:
         fetch-depth: 1
     - name: Download 1-latest release's json
       shell: bash
-      if: (startsWith(github.ref, 'refs/tags/') && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-win22]') != true)
+      if: (github.ref_type == 'tag' && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-win22]') != true)
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
         echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
         rm -f tmp.json
     - name: Download latest release's json
       shell: bash
-      if: (startsWith(github.ref, 'refs/tags/') != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-win22]') != true)
+      if: (github.ref_type == 'tag' != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-win22]') != true)
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o previous.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
     - name: Download cached archive
@@ -248,24 +245,21 @@ jobs:
       run: |
         cd $VCPKG_INSTALLATION_ROOT
         "$PROGRAMFILES/7-Zip/7z.exe" a -tzip installed_x86-windows-static-vs2022.zip installed scripts .vcpkg-root vcpkg.exe
-    - name: Get upload endpoint
+    - name: Set vcpkg archive path
       id: get_endpoint
-      if: startsWith(github.ref, 'refs/tags/')
+      if: github.ref_type == 'tag'
       shell: bash
       run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
-        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
-        echo ::set-output name=asset_path::$VCPKG_INSTALLATION_ROOT/installed_x86-windows-static-vs2022.zip
+        echo "asset_path=$VCPKG_INSTALLATION_ROOT/installed_x86-windows-static-vs2022.zip" >> $GITHUB_OUTPUT
     - name: Upload binaries to GitHub
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: actions/upload-release-asset@v1.0.1
+      if: github.ref_type == 'tag'
+      uses: shogo82148/actions-upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
         asset_path: ${{ steps.get_endpoint.outputs.asset_path }}
         asset_name: installed_x86-windows-static-vs2022.zip
-        asset_content_type: application/zip
 
   x86-windows-static-vs2019:
     runs-on: windows-2019
@@ -277,14 +271,14 @@ jobs:
         fetch-depth: 1
     - name: Download 1-latest release's json
       shell: bash
-      if: (startsWith(github.ref, 'refs/tags/') && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-win19]') != true)
+      if: (github.ref_type == 'tag' && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-win19]') != true)
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
         echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
         rm -f tmp.json
     - name: Download latest release's json
       shell: bash
-      if: (startsWith(github.ref, 'refs/tags/') != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-win19]') != true)
+      if: (github.ref_type == 'tag' != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-win19]') != true)
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o previous.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
     - name: Download cached archive
@@ -327,24 +321,21 @@ jobs:
       run: |
         cd $VCPKG_INSTALLATION_ROOT
         "$PROGRAMFILES/7-Zip/7z.exe" a -tzip installed_x86-windows-static-vs2019.zip installed scripts .vcpkg-root vcpkg.exe
-    - name: Get upload endpoint
+    - name: Set vcpkg archive path
       id: get_endpoint
-      if: startsWith(github.ref, 'refs/tags/')
+      if: github.ref_type == 'tag'
       shell: bash
       run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
-        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
-        echo ::set-output name=asset_path::$VCPKG_INSTALLATION_ROOT/installed_x86-windows-static-vs2019.zip
+        echo "asset_path=$VCPKG_INSTALLATION_ROOT/installed_x86-windows-static-vs2019.zip" >> $GITHUB_OUTPUT
     - name: Upload binaries to GitHub
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: actions/upload-release-asset@v1.0.1
+      if: github.ref_type == 'tag'
+      uses: shogo82148/actions-upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
         asset_path: ${{ steps.get_endpoint.outputs.asset_path }}
         asset_name: installed_x86-windows-static-vs2019.zip
-        asset_content_type: application/zip
 
   x86-windows-static-vs2015:
     runs-on: windows-2019
@@ -356,14 +347,14 @@ jobs:
         fetch-depth: 1
     - name: Download 1-latest release's json
       shell: bash
-      if: (startsWith(github.ref, 'refs/tags/') && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-win15]') != true)
+      if: (github.ref_type == 'tag' && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-win15]') != true)
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
         echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
         rm -f tmp.json
     - name: Download latest release's json
       shell: bash
-      if: (startsWith(github.ref, 'refs/tags/') != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-win15]') != true)
+      if: (github.ref_type == 'tag' != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-win15]') != true)
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o previous.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
     - name: Download cached archive
@@ -410,24 +401,21 @@ jobs:
       run: |
         cd $VCPKG_INSTALLATION_ROOT
         "$PROGRAMFILES/7-Zip/7z.exe" a -tzip installed_x86-windows-static-vs2015.zip installed scripts .vcpkg-root vcpkg.exe
-    - name: Get upload endpoint
+    - name: Set vcpkg archive path
       id: get_endpoint
-      if: startsWith(github.ref, 'refs/tags/')
+      if: github.ref_type == 'tag'
       shell: bash
       run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
-        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
-        echo ::set-output name=asset_path::$VCPKG_INSTALLATION_ROOT/installed_x86-windows-static-vs2015.zip
+        echo "asset_path=$VCPKG_INSTALLATION_ROOT/installed_x86-windows-static-vs2015.zip" >> $GITHUB_OUTPUT
     - name: Upload binaries to GitHub
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: actions/upload-release-asset@v1.0.1
+      if: github.ref_type == 'tag'
+      uses: shogo82148/actions-upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
         asset_path: ${{ steps.get_endpoint.outputs.asset_path }}
         asset_name: installed_x86-windows-static-vs2015.zip
-        asset_content_type: application/zip
 
   x64-osx:
     runs-on: macos-11
@@ -443,14 +431,14 @@ jobs:
         fetch-depth: 1
     - name: Download 1-latest release's json
       shell: bash
-      if: (startsWith(github.ref, 'refs/tags/') && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-osx]') != true)
+      if: (github.ref_type == 'tag' && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-osx]') != true)
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
         echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
         rm -f tmp.json
     - name: Download latest release's json
       shell: bash
-      if: (startsWith(github.ref, 'refs/tags/') != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-osx]') != true)
+      if: (github.ref_type == 'tag' != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-osx]') != true)
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o previous.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
     - name: Download cached archive
@@ -524,23 +512,20 @@ jobs:
       run: |
         cd $VCPKG_INSTALLATION_ROOT
         7z a installed_x64-osx.7z installed
-    - name: Get upload endpoint
+    - name: Set vcpkg archive path
       id: get_endpoint
-      if: startsWith(github.ref, 'refs/tags/')
+      if: github.ref_type == 'tag'
       run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
-        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
-        echo ::set-output name=asset_path::$VCPKG_INSTALLATION_ROOT/installed_x64-osx.7z
+        echo "asset_path=$VCPKG_INSTALLATION_ROOT/installed_x64-osx.7z" >> $GITHUB_OUTPUT
     - name: Upload binaries to GitHub
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: actions/upload-release-asset@v1.0.1
+      if: github.ref_type == 'tag'
+      uses: shogo82148/actions-upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
         asset_path: ${{ steps.get_endpoint.outputs.asset_path }}
         asset_name: installed_x64-osx.7z
-        asset_content_type: application/x-7z-compressed
 
   x64-osx-cctools:
     runs-on: ubuntu-latest
@@ -567,14 +552,14 @@ jobs:
         ln llvm-install-name-tool -s install_name_tool
     - name: Download 1-latest release's json
       shell: bash
-      if: (startsWith(github.ref, 'refs/tags/') && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-osx-cctools]') != true)
+      if: (github.ref_type == 'tag' && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-osx-cctools]') != true)
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
         echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
         rm -f tmp.json
     - name: Download latest release's json
       shell: bash
-      if: (startsWith(github.ref, 'refs/tags/') != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-osx-cctools]') != true)
+      if: (github.ref_type == 'tag' != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-osx-cctools]') != true)
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o previous.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
     - name: Download cached archive
@@ -636,23 +621,20 @@ jobs:
       run: |
         cd $VCPKG_INSTALLATION_ROOT
         7z a installed_x64-osx-cctools.7z installed
-    - name: Get upload endpoint
+    - name: Set vcpkg archive path
       id: get_endpoint
-      if: startsWith(github.ref, 'refs/tags/')
+      if: github.ref_type == 'tag'
       run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
-        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
-        echo ::set-output name=asset_path::$VCPKG_INSTALLATION_ROOT/installed_x64-osx-cctools.7z
+        echo "asset_path=$VCPKG_INSTALLATION_ROOT/installed_x64-osx-cctools.7z" >> $GITHUB_OUTPUT
     - name: Upload binaries to GitHub
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: actions/upload-release-asset@v1.0.1
+      if: github.ref_type == 'tag'
+      uses: shogo82148/actions-upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
         asset_path: ${{ steps.get_endpoint.outputs.asset_path }}
         asset_name: installed_x64-osx-cctools.7z
-        asset_content_type: application/x-7z-compressed
 
   aarch64-osx-cctools:
     runs-on: ubuntu-latest
@@ -679,14 +661,14 @@ jobs:
         ln llvm-install-name-tool -s install_name_tool
     - name: Download 1-latest release's json
       shell: bash
-      if: (startsWith(github.ref, 'refs/tags/') && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-osx64-cctools]') != true)
+      if: (github.ref_type == 'tag' && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-osx64-cctools]') != true)
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
         echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
         rm -f tmp.json
     - name: Download latest release's json
       shell: bash
-      if: (startsWith(github.ref, 'refs/tags/') != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-osx64-cctools]') != true)
+      if: (github.ref_type == 'tag' != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-osx64-cctools]') != true)
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o previous.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
     - name: Download cached archive
@@ -746,23 +728,20 @@ jobs:
       run: |
         cd $VCPKG_INSTALLATION_ROOT
         7z a installed_aarch64-osx-cctools.7z installed
-    - name: Get upload endpoint
+    - name: Set vcpkg archive path
       id: get_endpoint
-      if: startsWith(github.ref, 'refs/tags/')
+      if: github.ref_type == 'tag'
       run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
-        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
-        echo ::set-output name=asset_path::$VCPKG_INSTALLATION_ROOT/installed_aarch64-osx-cctools.7z
+        echo "asset_path=$VCPKG_INSTALLATION_ROOT/installed_aarch64-osx-cctools.7z" >> $GITHUB_OUTPUT
     - name: Upload binaries to GitHub
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: actions/upload-release-asset@v1.0.1
+      if: github.ref_type == 'tag'
+      uses: shogo82148/actions-upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
         asset_path: ${{ steps.get_endpoint.outputs.asset_path }}
         asset_name: installed_aarch64-osx-cctools.7z
-        asset_content_type: application/x-7z-compressed
 
   x64-osx-lastsdk:
     runs-on: macos-11
@@ -777,14 +756,14 @@ jobs:
         fetch-depth: 1
     - name: Download 1-latest release's json
       shell: bash
-      if: (startsWith(github.ref, 'refs/tags/') && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-osx-sdk]') != true)
+      if: (github.ref_type == 'tag' && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-osx-sdk]') != true)
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
         echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
         rm -f tmp.json
     - name: Download latest release's json
       shell: bash
-      if: (startsWith(github.ref, 'refs/tags/') != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-osx-sdk]') != true)
+      if: (github.ref_type == 'tag' != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-osx-sdk]') != true)
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o previous.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
     - name: Download cached archive
@@ -838,23 +817,20 @@ jobs:
       run: |
         cd $VCPKG_INSTALLATION_ROOT
         7z a installed_x64-osx-last-sdk.7z installed
-    - name: Get upload endpoint
+    - name: Set vcpkg archive path
       id: get_endpoint
-      if: startsWith(github.ref, 'refs/tags/')
+      if: github.ref_type == 'tag'
       run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
-        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
-        echo ::set-output name=asset_path::$VCPKG_INSTALLATION_ROOT/installed_x64-osx-last-sdk.7z
+        echo "asset_path=$VCPKG_INSTALLATION_ROOT/installed_x64-osx-last-sdk.7z" >> $GITHUB_OUTPUT
     - name: Upload binaries to GitHub
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: actions/upload-release-asset@v1.0.1
+      if: github.ref_type == 'tag'
+      uses: shogo82148/actions-upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
         asset_path: ${{ steps.get_endpoint.outputs.asset_path }}
         asset_name: installed_x64-osx-last-sdk.7z
-        asset_content_type: application/x-7z-compressed
 
   aarch64-osx:
     runs-on: macos-latest
@@ -868,14 +844,14 @@ jobs:
         fetch-depth: 1
     - name: Download 1-latest release's json
       shell: bash
-      if: (startsWith(github.ref, 'refs/tags/') && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-osx64]') != true)
+      if: (github.ref_type == 'tag' && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-osx64]') != true)
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
         echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
         rm -f tmp.json
     - name: Download latest release's json
       shell: bash
-      if: (startsWith(github.ref, 'refs/tags/') != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-osx64]') != true)
+      if: (github.ref_type == 'tag' != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-osx64]') != true)
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o previous.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
     - name: Download cached archive
@@ -931,23 +907,20 @@ jobs:
       run: |
         cd $VCPKG_INSTALLATION_ROOT
         7z a installed_aarch64-osx.7z installed
-    - name: Get upload endpoint
+    - name: Set vcpkg archive path
       id: get_endpoint
-      if: startsWith(github.ref, 'refs/tags/')
+      if: github.ref_type == 'tag'
       run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
-        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
-        echo ::set-output name=asset_path::$VCPKG_INSTALLATION_ROOT/installed_aarch64-osx.7z
+        echo "asset_path=$VCPKG_INSTALLATION_ROOT/installed_aarch64-osx.7z" >> $GITHUB_OUTPUT
     - name: Upload binaries to GitHub
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: actions/upload-release-asset@v1.0.1
+      if: github.ref_type == 'tag'
+      uses: shogo82148/actions-upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
         asset_path: ${{ steps.get_endpoint.outputs.asset_path }}
         asset_name: installed_aarch64-osx.7z
-        asset_content_type: application/x-7z-compressed
 
   x64-linux:
     runs-on: ubuntu-latest
@@ -966,13 +939,13 @@ jobs:
         apt-get install -y sudo yasm libgl1-mesa-dev libasound2-dev libpulse-dev libwayland-dev libxkbcommon-dev \
             g++ build-essential curl p7zip-full p7zip-rar zip unzip tar pkg-config git nodejs
     - name: Download 1-latest release's json
-      if: (startsWith(github.ref, 'refs/tags/') && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-linux]') != true)
+      if: (github.ref_type == 'tag' && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-linux]') != true)
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
         echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
         rm -f tmp.json
     - name: Download latest release's json
-      if: (startsWith(github.ref, 'refs/tags/') != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-linux]') != true)
+      if: (github.ref_type == 'tag' != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-linux]') != true)
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o previous.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
     - name: Download cached archive
@@ -1010,23 +983,20 @@ jobs:
       run: |
         cd $VCPKG_INSTALLATION_ROOT
         7z a installed_x64-linux.7z installed scripts .vcpkg-root
-    - name: Get upload endpoint
+    - name: Set vcpkg archive path
       id: get_endpoint
-      if: startsWith(github.ref, 'refs/tags/')
+      if: github.ref_type == 'tag'
       run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
-        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
-        echo ::set-output name=asset_path::$VCPKG_INSTALLATION_ROOT/installed_x64-linux.7z
+        echo "asset_path=$VCPKG_INSTALLATION_ROOT/installed_x64-linux.7z" >> $GITHUB_OUTPUT
     - name: Upload binaries to GitHub
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: actions/upload-release-asset@v1.0.1
+      if: github.ref_type == 'tag'
+      uses: shogo82148/actions-upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
         asset_path: ${{ steps.get_endpoint.outputs.asset_path }}
         asset_name: installed_x64-linux.7z
-        asset_content_type: application/x-7z-compressed
 
   aarch64-linux:
     runs-on: ubuntu-latest
@@ -1046,13 +1016,13 @@ jobs:
              gcc-aarch64-linux-gnu g++-aarch64-linux-gnu binutils-aarch64-linux-gnu g++ build-essential curl \
              p7zip-full p7zip-rar zip unzip tar pkg-config git nodejs
     - name: Download 1-latest release's json
-      if: (startsWith(github.ref, 'refs/tags/') && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-linux64]') != true)
+      if: (github.ref_type == 'tag' && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-linux64]') != true)
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
         echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
         rm -f tmp.json
     - name: Download latest release's json
-      if: (startsWith(github.ref, 'refs/tags/') != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-linux64]') != true)
+      if: (github.ref_type == 'tag' != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-linux64]') != true)
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o previous.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
     - name: Download cached archive
@@ -1091,23 +1061,20 @@ jobs:
       run: |
         cd $VCPKG_INSTALLATION_ROOT
         7z a installed_aarch64-linux.7z installed scripts .vcpkg-root
-    - name: Get upload endpoint
+    - name: Set vcpkg archive path
       id: get_endpoint
-      if: startsWith(github.ref, 'refs/tags/')
+      if: github.ref_type == 'tag'
       run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
-        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
-        echo ::set-output name=asset_path::$VCPKG_INSTALLATION_ROOT/installed_aarch64-linux.7z
+        echo "asset_path=$VCPKG_INSTALLATION_ROOT/installed_aarch64-linux.7z" >> $GITHUB_OUTPUT
     - name: Upload binaries to GitHub
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: actions/upload-release-asset@v1.0.1
+      if: github.ref_type == 'tag'
+      uses: shogo82148/actions-upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
         asset_path: ${{ steps.get_endpoint.outputs.asset_path }}
         asset_name: installed_aarch64-linux.7z
-        asset_content_type: application/x-7z-compressed
 
   aarch64-ios-cctools:
     runs-on: ubuntu-latest
@@ -1138,14 +1105,14 @@ jobs:
         ln iPhoneOS16.1.sdk -s iPhoneOS.sdk
     - name: Download 1-latest release's json
       shell: bash
-      if: (startsWith(github.ref, 'refs/tags/') && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-ios-cctools]') != true)
+      if: (github.ref_type == 'tag' && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-ios-cctools]') != true)
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
         echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
         rm -f tmp.json
     - name: Download latest release's json
       shell: bash
-      if: (startsWith(github.ref, 'refs/tags/') != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-ios-cctools]') != true)
+      if: (github.ref_type == 'tag' != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-ios-cctools]') != true)
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o previous.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
     - name: Download cached archive
@@ -1199,23 +1166,20 @@ jobs:
       run: |
         cd $VCPKG_INSTALLATION_ROOT
         7z a installed_aarch64-ios-cctools.7z installed
-    - name: Get upload endpoint
+    - name: Set vcpkg archive path
       id: get_endpoint
-      if: startsWith(github.ref, 'refs/tags/')
+      if: github.ref_type == 'tag'
       run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
-        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
-        echo ::set-output name=asset_path::$VCPKG_INSTALLATION_ROOT/installed_aarch64-ios-cctools.7z
+        echo "asset_path=$VCPKG_INSTALLATION_ROOT/installed_aarch64-ios-cctools.7z" >> $GITHUB_OUTPUT
     - name: Upload binaries to GitHub
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: actions/upload-release-asset@v1.0.1
+      if: github.ref_type == 'tag'
+      uses: shogo82148/actions-upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
         asset_path: ${{ steps.get_endpoint.outputs.asset_path }}
         asset_name: installed_aarch64-ios-cctools.7z
-        asset_content_type: application/x-7z-compressed
 
   armv7-ios-cctools:
     runs-on: ubuntu-latest
@@ -1246,14 +1210,14 @@ jobs:
         ln iPhoneOS13.0.sdk -s iPhoneOS.sdk
     - name: Download 1-latest release's json
       shell: bash
-      if: (startsWith(github.ref, 'refs/tags/') && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-iosv7-cctools]') != true)
+      if: (github.ref_type == 'tag' && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-iosv7-cctools]') != true)
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
         echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
         rm -f tmp.json
     - name: Download latest release's json
       shell: bash
-      if: (startsWith(github.ref, 'refs/tags/') != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-iosv7-cctools]') != true)
+      if: (github.ref_type == 'tag' != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-iosv7-cctools]') != true)
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o previous.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
     - name: Download cached archive
@@ -1307,23 +1271,20 @@ jobs:
       run: |
         cd $VCPKG_INSTALLATION_ROOT
         7z a installed_armv7-ios-cctools.7z installed
-    - name: Get upload endpoint
+    - name: Set vcpkg archive path
       id: get_endpoint
-      if: startsWith(github.ref, 'refs/tags/')
+      if: github.ref_type == 'tag'
       run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
-        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
-        echo ::set-output name=asset_path::$VCPKG_INSTALLATION_ROOT/installed_armv7-ios-cctools.7z
+        echo "asset_path=$VCPKG_INSTALLATION_ROOT/installed_armv7-ios-cctools.7z" >> $GITHUB_OUTPUT
     - name: Upload binaries to GitHub
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: actions/upload-release-asset@v1.0.1
+      if: github.ref_type == 'tag'
+      uses: shogo82148/actions-upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
         asset_path: ${{ steps.get_endpoint.outputs.asset_path }}
         asset_name: installed_armv7-ios-cctools.7z
-        asset_content_type: application/x-7z-compressed
 
   x64-iossim-cctools:
     runs-on: ubuntu-latest
@@ -1354,14 +1315,14 @@ jobs:
         ln iPhoneSimulator16.1.sdk -s iPhoneSimulator.sdk
     - name: Download 1-latest release's json
       shell: bash
-      if: (startsWith(github.ref, 'refs/tags/') && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-iossim-cctools]') != true)
+      if: (github.ref_type == 'tag' && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-iossim-cctools]') != true)
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
         echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
         rm -f tmp.json
     - name: Download latest release's json
       shell: bash
-      if: (startsWith(github.ref, 'refs/tags/') != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-iossim-cctools]') != true)
+      if: (github.ref_type == 'tag' != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-iossim-cctools]') != true)
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o previous.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
     - name: Download cached archive
@@ -1415,23 +1376,20 @@ jobs:
       run: |
         cd $VCPKG_INSTALLATION_ROOT
         7z a installed_x64-iossim-cctools.7z installed
-    - name: Get upload endpoint
+    - name: Set vcpkg archive path
       id: get_endpoint
-      if: startsWith(github.ref, 'refs/tags/')
+      if: github.ref_type == 'tag'
       run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
-        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
-        echo ::set-output name=asset_path::$VCPKG_INSTALLATION_ROOT/installed_x64-iossim-cctools.7z
+        echo "asset_path=$VCPKG_INSTALLATION_ROOT/installed_x64-iossim-cctools.7z" >> $GITHUB_OUTPUT
     - name: Upload binaries to GitHub
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: actions/upload-release-asset@v1.0.1
+      if: github.ref_type == 'tag'
+      uses: shogo82148/actions-upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
         asset_path: ${{ steps.get_endpoint.outputs.asset_path }}
         asset_name: installed_x64-iossim-cctools.7z
-        asset_content_type: application/x-7z-compressed
 
   aarch64-iossim-cctools:
     runs-on: ubuntu-latest
@@ -1462,14 +1420,14 @@ jobs:
         ln iPhoneSimulator16.1.sdk -s iPhoneSimulator.sdk
     - name: Download 1-latest release's json
       shell: bash
-      if: (startsWith(github.ref, 'refs/tags/') && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-iossim64-cctools]') != true)
+      if: (github.ref_type == 'tag' && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-iossim64-cctools]') != true)
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
         echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
         rm -f tmp.json
     - name: Download latest release's json
       shell: bash
-      if: (startsWith(github.ref, 'refs/tags/') != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-iossim64-cctools]') != true)
+      if: (github.ref_type == 'tag' != true && contains(github.event.head_commit.message, '[new]') != true && contains(github.event.head_commit.message, '[new-iossim64-cctools]') != true)
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o previous.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
     - name: Download cached archive
@@ -1523,272 +1481,76 @@ jobs:
       run: |
         cd $VCPKG_INSTALLATION_ROOT
         7z a installed_aarch64-iossim-cctools.7z installed
-    - name: Get upload endpoint
+    - name: Set vcpkg archive path
       id: get_endpoint
-      if: startsWith(github.ref, 'refs/tags/')
+      if: github.ref_type == 'tag'
       run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
-        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
-        echo ::set-output name=asset_path::$VCPKG_INSTALLATION_ROOT/installed_aarch64-iossim-cctools.7z
+        echo "asset_path=$VCPKG_INSTALLATION_ROOT/installed_aarch64-iossim-cctools.7z" >> $GITHUB_OUTPUT
     - name: Upload binaries to GitHub
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: actions/upload-release-asset@v1.0.1
+      if: github.ref_type == 'tag'
+      uses: shogo82148/actions-upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
         asset_path: ${{ steps.get_endpoint.outputs.asset_path }}
         asset_name: installed_aarch64-iossim-cctools.7z
-        asset_content_type: application/x-7z-compressed
 
   passthroughs:
     runs-on: ubuntu-latest
     needs: create-release
-    if: ((contains(github.event.head_commit.message, '[skip-win]')
-        || contains(github.event.head_commit.message, '[skip-win15]')
-        || contains(github.event.head_commit.message, '[skip-win17]')
-        || contains(github.event.head_commit.message, '[skip-win19]')
-        || contains(github.event.head_commit.message, '[skip-win22]')
-        || contains(github.event.head_commit.message, '[skip-osx]')
-        || contains(github.event.head_commit.message, '[skip-osx64]')
-        || contains(github.event.head_commit.message, '[skip-ios-cctools]')
-        || contains(github.event.head_commit.message, '[skip-iosv7-cctools]')
-        || contains(github.event.head_commit.message, '[skip-iossim-cctools]')
-        || contains(github.event.head_commit.message, '[skip-linux]')
-        || contains(github.event.head_commit.message, '[skip-linux64]'))
-        && startsWith(github.ref, 'refs/tags/'))
+    if: github.ref_type == 'tag'
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - target_name: '[skip-win]'
+            package_name: installed_x86-windows-static.zip
+          - target_name: '[skip-win15]'
+            package_name: installed_x86-windows-static-vs2015.zip
+          - target_name: '[skip-win17]'
+            package_name: installed_x86-windows-static-vs2017.zip
+          - target_name: '[skip-win19]'
+            package_name: installed_x86-windows-static-vs2019.zip
+          - target_name: '[skip-win22]'
+            package_name: installed_x86-windows-static-vs2022.zip
+          - target_name: '[skip-linux]'
+            package_name: installed_x64-linux.7z
+          - target_name: '[skip-linux64]'
+            package_name: installed_aarch64-linux.7z
+          - target_name: '[skip-osx]'
+            package_name: installed_x64-osx.7z
+          - target_name: '[skip-osx64]'
+            package_name: installed_aarch64-osx.7z
+          - target_name: '[skip-osx-cctools]'
+            package_name: installed_x64-osx-cctools.7z
+          - target_name: '[skip-osx64-cctools]'
+            package_name: installed_aarch64-osx-cctools.7z
+          - target_name: '[skip-ios-cctools]'
+            package_name: installed_aarch64-ios-cctools.7z
+          - target_name: '[skip-iosv7-cctools]'
+            package_name: installed_armv7-ios-cctools.7z
+          - target_name: '[skip-iossim-cctools]'
+            package_name: installed_x64-iossim-cctools.7z
+          - target_name: '[skip-iossim64-cctools]'
+            package_name: installed_aarch64-iossim-cctools.7z
     steps:
     - name: Download 1-latest release's json
+      if: contains(github.event.head_commit.message, matrix.target_name)
       run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o tmp.json ${{ format('https://api.github.com/repos/{0}/releases', github.repository) }}
         echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
         rm -f tmp.json
-    - name: Get upload endpoint
-      id: get_endpoint
+    - name: Download cached archive
+      if: contains(github.event.head_commit.message, matrix.target_name)
       run: |
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o latest.json https://api.github.com/repos/edo9300/edopro-vcpkg-cache/releases/latest
-        echo ::set-output name=upload_url::$(node -e "console.log(JSON.parse(require('fs').readFileSync('./latest.json'))['upload_url'])")
-    - name: Download cached archive linux
-      if: contains(github.event.head_commit.message, '[skip-linux]')
-      run: |
-        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x64-linux.7z'){ console.log(obj['url']) }})")"
-    - name: Upload binaries to GitHub linux
-      if: contains(github.event.head_commit.message, '[skip-linux]')
-      uses: actions/upload-release-asset@v1.0.1
+        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='${{ matrix.package_name }}'){ console.log(obj['url']) }})")"
+    - name: Reupload archive to GitHub
+      if: contains(github.event.head_commit.message, matrix.target_name)
+      uses: shogo82148/actions-upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
-        asset_path: ./installed_x64-linux.7z
-        asset_name: installed_x64-linux.7z
-        asset_content_type: application/x-7z-compressed
-    - name: Download cached archive linux64
-      if: contains(github.event.head_commit.message, '[skip-linux64]')
-      run: |
-        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_aarch64-linux.7z'){ console.log(obj['url']) }})")"
-    - name: Upload binaries to GitHub linux64
-      if: contains(github.event.head_commit.message, '[skip-linux64]')
-      uses: actions/upload-release-asset@v1.0.1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
-        asset_path: ./installed_aarch64-linux.7z
-        asset_name: installed_aarch64-linux.7z
-        asset_content_type: application/x-7z-compressed
-    - name: Download cached archive osx
-      if: contains(github.event.head_commit.message, '[skip-osx]')
-      run: |
-        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x64-osx.7z'){ console.log(obj['url']) }})")"
-    - name: Upload binaries to GitHub osx
-      if: contains(github.event.head_commit.message, '[skip-osx]')
-      uses: actions/upload-release-asset@v1.0.1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
-        asset_path: ./installed_x64-osx.7z
-        asset_name: installed_x64-osx.7z
-        asset_content_type: application/zip
-    - name: Download cached archive osx cctools
-      if: contains(github.event.head_commit.message, '[skip-osx-cctools]')
-      run: |
-        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x64-osx-cctools.7z'){ console.log(obj['url']) }})")"
-    - name: Upload binaries to GitHub osx cctools
-      if: contains(github.event.head_commit.message, '[skip-osx-cctools]')
-      uses: actions/upload-release-asset@v1.0.1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
-        asset_path: ./installed_x64-osx-cctools.7z
-        asset_name: installed_x64-osx-cctools.7z
-        asset_content_type: application/zip
-    - name: Download cached archive osx last sdk
-      if: contains(github.event.head_commit.message, '[skip-osx-sdk]')
-      run: |
-        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x64-osx-last-sdk.7z'){ console.log(obj['url']) }})")"
-    - name: Upload binaries to GitHub osx last sdk
-      if: contains(github.event.head_commit.message, '[skip-osx-sdk]')
-      uses: actions/upload-release-asset@v1.0.1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
-        asset_path: ./installed_x64-osx-last-sdk.7z
-        asset_name: installed_x64-osx-last-sdk.7z
-        asset_content_type: application/zip
-    - name: Download cached archive osx64
-      if: contains(github.event.head_commit.message, '[skip-osx64]')
-      run: |
-        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_aarch64-osx.7z'){ console.log(obj['url']) }})")"
-    - name: Upload binaries to GitHub osx64
-      if: contains(github.event.head_commit.message, '[skip-osx64]')
-      uses: actions/upload-release-asset@v1.0.1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
-        asset_path: ./installed_aarch64-osx.7z
-        asset_name: installed_aarch64-osx.7z
-        asset_content_type: application/zip
-    - name: Download cached archive osx64 cctools
-      if: contains(github.event.head_commit.message, '[skip-osx64-cctools]')
-      run: |
-        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_aarch64-osx-cctools.7z'){ console.log(obj['url']) }})")"
-    - name: Upload binaries to GitHub osx64 cctools
-      if: contains(github.event.head_commit.message, '[skip-osx64-cctools]')
-      uses: actions/upload-release-asset@v1.0.1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
-        asset_path: ./installed_aarch64-osx-cctools.7z
-        asset_name: installed_aarch64-osx-cctools.7z
-        asset_content_type: application/zip
-    - name: Download cached archive ios cctools
-      if: contains(github.event.head_commit.message, '[skip-ios-cctools]')
-      run: |
-        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_aarch64-ios-cctools.7z'){ console.log(obj['url']) }})")"
-    - name: Upload binaries to GitHub ios cctools
-      if: contains(github.event.head_commit.message, '[skip-ios-cctools]')
-      uses: actions/upload-release-asset@v1.0.1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
-        asset_path: ./installed_aarch64-ios-cctools.7z
-        asset_name: installed_aarch64-ios-cctools.7z
-        asset_content_type: application/zip
-    - name: Download cached archive iosv7 cctools
-      if: contains(github.event.head_commit.message, '[skip-iosv7-cctools]')
-      run: |
-        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_armv7-ios-cctools.7z'){ console.log(obj['url']) }})")"
-    - name: Upload binaries to GitHub iosv7 cctools
-      if: contains(github.event.head_commit.message, '[skip-iosv7-cctools]')
-      uses: actions/upload-release-asset@v1.0.1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
-        asset_path: ./installed_armv7-ios-cctools.7z
-        asset_name: installed_armv7-ios-cctools.7z
-        asset_content_type: application/zip
-    - name: Download cached archive ios simulator cctools
-      if: contains(github.event.head_commit.message, '[skip-iossim-cctools]')
-      run: |
-        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x64-iossim-cctools.7z'){ console.log(obj['url']) }})")"
-    - name: Upload binaries to GitHub ios simulator cctools
-      if: contains(github.event.head_commit.message, '[skip-iossim-cctools]')
-      uses: actions/upload-release-asset@v1.0.1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
-        asset_path: ./installed_x64-iossim-cctools.7z
-        asset_name: installed_x64-iossim-cctools.7z
-        asset_content_type: application/zip
-    - name: Download cached archive ios simulator aarch64 cctools
-      if: contains(github.event.head_commit.message, '[skip-iossim64-cctools]')
-      run: |
-        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_aarch64-iossim-cctools.7z'){ console.log(obj['url']) }})")"
-    - name: Upload binaries to GitHub ios simulator aarch64 cctools
-      if: contains(github.event.head_commit.message, '[skip-iossim64-cctools]')
-      uses: actions/upload-release-asset@v1.0.1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
-        asset_path: ./installed_aarch64-iossim-cctools.7z
-        asset_name: installed_aarch64-iossim-cctools.7z
-        asset_content_type: application/zip
-    - name: Download cached archive vs2015
-      if: contains(github.event.head_commit.message, '[skip-win15]')
-      run: |
-        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x86-windows-static-vs2015.zip'){ console.log(obj['url']) }})")"
-    - name: Upload binaries to GitHub vs2015
-      if: contains(github.event.head_commit.message, '[skip-win15]')
-      uses: actions/upload-release-asset@v1.0.1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
-        asset_path: ./installed_x86-windows-static-vs2015.zip
-        asset_name: installed_x86-windows-static-vs2015.zip
-        asset_content_type: application/zip
-    - name: Download cached archive vs2017
-      if: contains(github.event.head_commit.message, '[skip-win17]')
-      run: |
-        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x86-windows-static-vs2017.zip'){ console.log(obj['url']) }})")"
-    - name: Upload binaries to GitHub vs2017
-      if: contains(github.event.head_commit.message, '[skip-win17]')
-      uses: actions/upload-release-asset@v1.0.1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
-        asset_path: ./installed_x86-windows-static-vs2017.zip
-        asset_name: installed_x86-windows-static-vs2017.zip
-        asset_content_type: application/zip
-    - name: Download cached archive vs2017_xp
-      if: contains(github.event.head_commit.message, '[skip-win]')
-      run: |
-        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x86-windows-static.zip'){ console.log(obj['url']) }})")"
-    - name: Upload binaries to GitHub vs2017_xp
-      if: contains(github.event.head_commit.message, '[skip-win]')
-      uses: actions/upload-release-asset@v1.0.1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
-        asset_path: ./installed_x86-windows-static.zip
-        asset_name: installed_x86-windows-static.zip
-        asset_content_type: application/zip
-    - name: Download cached archive vs2019
-      if: contains(github.event.head_commit.message, '[skip-win19]')
-      run: |
-        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x86-windows-static-vs2019.zip'){ console.log(obj['url']) }})")"
-    - name: Upload binaries to GitHub vs2019
-      if: contains(github.event.head_commit.message, '[skip-win19]')
-      uses: actions/upload-release-asset@v1.0.1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
-        asset_path: ./installed_x86-windows-static-vs2019.zip
-        asset_name: installed_x86-windows-static-vs2019.zip
-        asset_content_type: application/zip
-    - name: Download cached archive vs2022
-      if: contains(github.event.head_commit.message, '[skip-win22]')
-      run: |
-        curl -O -J -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/octet-stream" "$(node -e "JSON.parse(require('fs').readFileSync('./previous.json'))['assets'].forEach(function(obj){if(obj['name']=='installed_x86-windows-static-vs2022.zip'){ console.log(obj['url']) }})")"
-    - name: Upload binaries to GitHub vs2022
-      if: contains(github.event.head_commit.message, '[skip-win22]')
-      uses: actions/upload-release-asset@v1.0.1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.get_endpoint.outputs.upload_url }}
-        asset_path: ./installed_x86-windows-static-vs2022.zip
-        asset_name: installed_x86-windows-static-vs2022.zip
-        asset_content_type: application/zip
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
+        asset_path: ${{ format('./{0}', matrix.package_name) }}
+        asset_name: ${{ matrix.package_name }}
