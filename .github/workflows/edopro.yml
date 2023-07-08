@@ -274,20 +274,15 @@ jobs:
           https://github.com/edo9300/irrlicht1-8-4/archive/1.9-custom.zip
         7z x irrlicht1-8-4-1.9-custom.zip
         cd irrlicht1-8-4-1.9-custom
-        rm source/Irrlicht/Makefile
-        mv ../irrlicht-cctools-makefile source/Irrlicht/Makefile
-        #When building with cctools it doesn't like that a cpp file uses obj c features
-        mv source/Irrlicht/Irrlicht.cpp source/Irrlicht/Irrlicht.mm
-        mv source/Irrlicht/COSOperator.cpp source/Irrlicht/COSOperator.mm
         rm -r -f $VCPKG_INSTALLATION_ROOT/installed/$VCPKG_DEFAULT_TRIPLET/include/irrlicht
         mkdir -p $VCPKG_INSTALLATION_ROOT/installed/$VCPKG_DEFAULT_TRIPLET/include
         mkdir -p $VCPKG_INSTALLATION_ROOT/installed/$VCPKG_DEFAULT_TRIPLET/lib
         mkdir -p $VCPKG_INSTALLATION_ROOT/installed/$VCPKG_DEFAULT_TRIPLET/debug/lib
-        make -Csource/Irrlicht staticlib_osx NDEBUG=1 -j2
+        make -f ../irrlicht-cctools-makefile -Csource/Irrlicht staticlib_osx NDEBUG=1 -j2
         cp -r include $VCPKG_INSTALLATION_ROOT/installed/$VCPKG_DEFAULT_TRIPLET/include/irrlicht
         cp lib/MacOSX/libIrrlicht.a $VCPKG_INSTALLATION_ROOT/installed/$VCPKG_DEFAULT_TRIPLET/lib
-        make -Csource/Irrlicht staticlib_osx NDEBUG=1 clean
-        make -Csource/Irrlicht staticlib_osx -j2
+        make -f ../irrlicht-cctools-makefile -Csource/Irrlicht staticlib_osx NDEBUG=1 clean
+        make -f ../irrlicht-cctools-makefile -Csource/Irrlicht staticlib_osx -j2
         cp lib/MacOSX/libIrrlicht.a $VCPKG_INSTALLATION_ROOT/installed/$VCPKG_DEFAULT_TRIPLET/debug/lib
     - name: Install vcpkg dependencies
       if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
@@ -515,16 +510,11 @@ jobs:
           https://github.com/edo9300/irrlicht1-8-4/archive/1.9-custom.zip
         7z x irrlicht1-8-4-1.9-custom.zip
         cd irrlicht1-8-4-1.9-custom
-        rm source/Irrlicht/Makefile
-        mv ../irrlicht-cctools-makefile source/Irrlicht/Makefile
-        #When building with cctools it doesn't like that a cpp file uses obj c features
-        mv source/Irrlicht/Irrlicht.cpp source/Irrlicht/Irrlicht.mm
-        mv source/Irrlicht/COSOperator.cpp source/Irrlicht/COSOperator.mm
         rm -r -f $VCPKG_INSTALLATION_ROOT/installed/$VCPKG_DEFAULT_TRIPLET/include/irrlicht
         mkdir -p $VCPKG_INSTALLATION_ROOT/installed/$VCPKG_DEFAULT_TRIPLET/include
         mkdir -p $VCPKG_INSTALLATION_ROOT/installed/$VCPKG_DEFAULT_TRIPLET/lib
         mkdir -p $VCPKG_INSTALLATION_ROOT/installed/$VCPKG_DEFAULT_TRIPLET/debug/lib
-        make -Csource/Irrlicht staticlib_ios NDEBUG=1 -j2
+        make -f ../irrlicht-cctools-makefile -Csource/Irrlicht staticlib_ios NDEBUG=1 -j2
         cp -r include $VCPKG_INSTALLATION_ROOT/installed/$VCPKG_DEFAULT_TRIPLET/include/irrlicht
         cp lib/IOS/libIrrlicht.a $VCPKG_INSTALLATION_ROOT/installed/$VCPKG_DEFAULT_TRIPLET/lib
         make -Csource/Irrlicht staticlib_ios NDEBUG=1 clean
