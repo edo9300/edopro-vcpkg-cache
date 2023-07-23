@@ -1,0 +1,43 @@
+diff --git a/providers/implementations/rands/seeding/rand_win.c b/providers/implementations/rands/seeding/rand_win.c
+index 9036546008..5fd8c8743d 100644
+--- a/providers/implementations/rands/seeding/rand_win.c
++++ b/providers/implementations/rands/seeding/rand_win.c
+@@ -18,6 +18,9 @@
+ # endif
+ 
+ # include <windows.h>
++
++#undef _WIN32_WINNT
++
+ /* On Windows Vista or higher use BCrypt instead of the legacy CryptoAPI */
+ # if defined(_MSC_VER) && _MSC_VER > 1500 /* 1500 = Visual Studio 2008 */ \
+      && defined(_WIN32_WINNT) && _WIN32_WINNT >= 0x0600
+diff --git a/crypto/threads_win.c b/crypto/threads_win.c
+index dbeda74..9031ccf 100644
+--- a/crypto/threads_win.c
++++ b/crypto/threads_win.c
+@@ -9,7 +9,7 @@
+ 
+ #if defined(_WIN32)
+ # include <windows.h>
+-# if defined(_WIN32_WINNT) && _WIN32_WINNT >= 0x600
++# if 0
+ #  define USE_RWLOCK
+ # endif
+ #endif
+-- 
+2.38.1.windows.1
+diff --git a/crypto/async/arch/async_win.h b/crypto/async/arch/async_win.h
+index 0fab959..d0b0eaf 100644
+--- a/crypto/async/arch/async_win.h
++++ b/crypto/async/arch/async_win.h
+@@ -17,6 +17,7 @@
+ # define ASYNC_ARCH
+ 
+ # include <windows.h>
++#undef _WIN32_WINNT
+ # include "internal/cryptlib.h"
+ 
+ typedef struct async_fibre_st {
+-- 
+2.38.1.windows.1
