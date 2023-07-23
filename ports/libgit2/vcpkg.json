@@ -1,9 +1,10 @@
 {
   "name": "libgit2",
-  "version-semver": "1.4.4",
+  "version-semver": "1.6.4",
   "port-version": 1,
-  "description": "Git linkable library",
+  "description": "A C library implementing the Git core methods with a solid API",
   "homepage": "https://github.com/libgit2/libgit2",
+  "license": null,
   "supports": "!uwp",
   "dependencies": [
     {
@@ -16,6 +17,6 @@
     },
     "openssl",
     "zlib",
-    "libssh2"
+	"libssh2"
   ]
 }

@@ -1,8 +1,19 @@
-diff --git a/src/fs_path.c b/src/fs_path.c
-index 7a657778a3b..01f25049fce 100644
---- a/src/fs_path.c
-+++ b/src/fs_path.c
-@@ -1182,7 +1182,7 @@ int git_fs_path_direach(
+From c57815e88aeb38e28aca0e282c2201c091cf755e Mon Sep 17 00:00:00 2001
+From: Edoardo Lolletti <edoardo762@gmail.com>
+Date: Sat, 19 Feb 2022 16:50:19 +0100
+Subject: [PATCH] Update path functions to work on winxp
+
+---
+ src/util/fs_path.c         |  2 +-
+ src/util/fs_path.h         |  2 +-
+ src/util/win32/posix_w32.c | 28 ++++++++++++++++++++++++++--
+ 3 files changed, 28 insertions(+), 4 deletions(-)
+
+diff --git a/src/util/fs_path.c b/src/util/fs_path.c
+index b52867e77..c8545fcb7 100644
+--- a/src/util/fs_path.c
++++ b/src/util/fs_path.c
+@@ -1188,7 +1188,7 @@ int git_fs_path_direach(
  	return error;
  }
  
@@ -11,10 +22,10 @@ index 7a657778a3b..01f25049fce 100644
  
  /* Using _FIND_FIRST_EX_LARGE_FETCH may increase performance in Windows 7
   * and better.
-diff --git a/src/fs_path.h b/src/fs_path.h
-index 222c44abcee..d4319329594 100644
---- a/src/fs_path.h
-+++ b/src/fs_path.h
+diff --git a/src/util/fs_path.h b/src/util/fs_path.h
+index e5ca67378..3091d548c 100644
+--- a/src/util/fs_path.h
++++ b/src/util/fs_path.h
 @@ -457,7 +457,7 @@ extern bool git_fs_path_does_decompose_unicode(const char *root);
  
  typedef struct git_fs_path_diriter git_fs_path_diriter;
@@ -24,11 +35,11 @@ index 222c44abcee..d4319329594 100644
  
  struct git_fs_path_diriter
  {
-diff --git a/src/win32/posix_w32.c b/src/win32/posix_w32.c
-index 5f7cd0c2645..82e7a710cf5 100644
---- a/src/win32/posix_w32.c
-+++ b/src/win32/posix_w32.c
-@@ -431,8 +431,19 @@ static bool target_is_dir(const char *target, const char *path)
+diff --git a/src/util/win32/posix_w32.c b/src/util/win32/posix_w32.c
+index 5862e5c9a..d7e98ff30 100644
+--- a/src/util/win32/posix_w32.c
++++ b/src/util/win32/posix_w32.c
+@@ -431,8 +431,19 @@ out:
  	return isdir;
  }
  
@@ -90,3 +101,6 @@ index 5f7cd0c2645..82e7a710cf5 100644
  	CloseHandle(hFile);
  
  	if (!dwChars || dwChars >= GIT_WIN_PATH_UTF16)
+-- 
+2.38.1.windows.1
+

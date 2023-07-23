@@ -1,7 +1,16 @@
-diff --git a/src/streams/openssl.c b/src/streams/openssl.c
-index 89c96780c14..6c874457889 100644
---- a/src/streams/openssl.c
-+++ b/src/streams/openssl.c
+From 02c2c2d8fd066ab4adb0dd62268fa81e98b6f147 Mon Sep 17 00:00:00 2001
+From: Edoardo Lolletti <edoardo762@gmail.com>
+Date: Sat, 19 Feb 2022 15:57:30 +0100
+Subject: [PATCH] Openssl native windows certificates
+
+---
+ src/libgit2/streams/openssl.c | 133 ++++++++++++++++++++++++++++++++--
+ 1 file changed, 127 insertions(+), 6 deletions(-)
+
+diff --git a/src/libgit2/streams/openssl.c b/src/libgit2/streams/openssl.c
+index 5e0e2c939..3228f39c0 100644
+--- a/src/libgit2/streams/openssl.c
++++ b/src/libgit2/streams/openssl.c
 @@ -27,6 +27,8 @@
  # include <sys/types.h>
  # include <sys/socket.h>
@@ -152,4 +161,6 @@ index 89c96780c14..6c874457889 100644
  	}
  	return 0;
  }
- 
+-- 
+2.38.1.windows.1
+
