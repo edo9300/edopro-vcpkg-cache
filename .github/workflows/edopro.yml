@@ -191,7 +191,7 @@ jobs:
       run: ./ci/zip_binaries.sh
     - name: Upload binaries to GitHub
       if: (github.ref_type == 'tag' && contains(github.event.head_commit.message, env.SKIP_CMD) != true)
-      uses: shogo82148/actions-upload-release-asset@v1
+      uses: shogo82148/actions-upload-release-asset@v1.6.6
       with:
         upload_url: ${{ needs.create-release.outputs.upload_url }}
         asset_path: ${{ steps.zip_binaries.outputs.asset_path }}
