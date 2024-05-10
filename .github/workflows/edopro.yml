@@ -156,7 +156,7 @@ jobs:
         git clone https://github.com/microsoft/vcpkg $VCPKG_INSTALLATION_ROOT
         cd $VCPKG_INSTALLATION_ROOT
         ./bootstrap-vcpkg.sh --disableMetrics
-        echo "PATH=/tmp/vcpkg:$PATH" >> $GITHUB_ENV
+        echo "PATH=$VCPKG_INSTALLATION_ROOT:$PATH" >> $GITHUB_ENV
     - name: Download and extract cached archive
       if: |
         (contains(github.event.head_commit.message, env.SKIP_CMD) != true &&
@@ -324,7 +324,7 @@ jobs:
           - target_name: 'osx64'
             package_name: installed_aarch64-osx.7z
             triplet: arm64-osx
-            os: macos-latest
+            os: macos-14
             deployment_target: 11.0
             developer_dir: /Applications/Xcode_14.3.1.app/Contents/Developer
             sdkroot: /Applications/Xcode_14.3.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.3.sdk
@@ -343,6 +343,15 @@ jobs:
       if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
       with:
         fetch-depth: 1
+    - name: Install vcpkg on osx14
+      if: (contains(github.event.head_commit.message, env.SKIP_CMD) != true && env.VCPKG_DEFAULT_TRIPLET == 'arm64-osx')
+      run: |
+        echo "VCPKG_INSTALLATION_ROOT=/tmp/vcpkg" >> $GITHUB_ENV
+        export VCPKG_INSTALLATION_ROOT=/tmp/vcpkg
+        git clone https://github.com/microsoft/vcpkg $VCPKG_INSTALLATION_ROOT
+        cd $VCPKG_INSTALLATION_ROOT
+        ./bootstrap-vcpkg.sh --disableMetrics
+        echo "PATH=$VCPKG_INSTALLATION_ROOT:$PATH" >> $GITHUB_ENV
     - name: Download and extract cached archive
       if: |
         (contains(github.event.head_commit.message, env.SKIP_CMD) != true &&

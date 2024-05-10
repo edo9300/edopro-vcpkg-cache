@@ -1,0 +1,51 @@
+diff --git a/src/util/win32/utf-conv.c b/src/util/win32/utf-conv.c
+index ad35c0c35..b76187f70 100644
+--- a/src/util/win32/utf-conv.c
++++ b/src/util/win32/utf-conv.c
+@@ -51,6 +51,19 @@ int git_utf8_from_16(char *dest, size_t dest_size, const wchar_t *src)
+ 	return git_utf8_from_16_with_len(dest, dest_size, src, -1);
+ }
+ 
++GIT_INLINE(DWORD) get_wc_flags(void) {
++	static char inited = 0;
++	static DWORD flags;
++
++	/* Invalid code point check supported on Vista+ only */
++	if(!inited) {
++		flags = git_has_win32_version(6, 0, 0) ? WC_ERR_INVALID_CHARS : 0;
++		inited = 1;
++	}
++
++	return flags;
++}
++
+ int git_utf8_from_16_with_len(
+ 	char *dest,
+ 	size_t _dest_size,
+@@ -66,7 +79,7 @@ int git_utf8_from_16_with_len(
+ 	 * WideCharToMultiByte never returns int's minvalue, so underflow
+ 	 * is not possible.
+ 	 */
+-	len = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS,
++	len = WideCharToMultiByte(CP_UTF8, get_wc_flags(),
+ 		src, src_len, dest, dest_size, NULL, NULL) - 1;
+ 
+ 	if (len < 0)
+@@ -121,7 +134,7 @@ int git_utf8_from_16_alloc_with_len(char **dest, const wchar_t *src, int src_len
+ 
+ 	*dest = NULL;
+ 
+-	utf8_size = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS,
++	utf8_size = WideCharToMultiByte(CP_UTF8, get_wc_flags(),
+ 		src, src_len, NULL, 0, NULL, NULL);
+ 
+ 	if (!utf8_size) {
+@@ -132,7 +145,7 @@ int git_utf8_from_16_alloc_with_len(char **dest, const wchar_t *src, int src_len
+ 	*dest = git__malloc(utf8_size);
+ 	GIT_ERROR_CHECK_ALLOC(*dest);
+ 
+-	utf8_size = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS,
++	utf8_size = WideCharToMultiByte(CP_UTF8, get_wc_flags(),
+ 		src, src_len, *dest, utf8_size, NULL, NULL);
+ 
+ 	if (utf8_size < 0) {

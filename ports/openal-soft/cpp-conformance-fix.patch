@@ -1,0 +1,37 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 55644b0..ca6ad90 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -236,10 +236,10 @@ endif()
+ 
+ if(MSVC)
+     set(CPP_DEFS ${CPP_DEFS} _CRT_SECURE_NO_WARNINGS)
+-    check_cxx_compiler_flag(/permissive- HAVE_PERMISSIVE_SWITCH)
+-    if(HAVE_PERMISSIVE_SWITCH)
+-        set(C_FLAGS ${C_FLAGS} $<$<COMPILE_LANGUAGE:CXX>:/permissive->)
+-    endif()
++    # check_cxx_compiler_flag(/permissive- HAVE_PERMISSIVE_SWITCH)
++    # if(HAVE_PERMISSIVE_SWITCH)
++        # set(C_FLAGS ${C_FLAGS} $<$<COMPILE_LANGUAGE:CXX>:/permissive->)
++    # endif()
+     set(C_FLAGS ${C_FLAGS} /W4 /w14640 /wd4065 /wd4127 /wd4268 /wd4324 /wd5030 /wd5051)
+ 
+     if(NOT DXSDK_DIR)
+diff --git a/core/ambdec.cpp b/core/ambdec.cpp
+index 8ca182c4..dcf5a085 100644
+--- a/core/ambdec.cpp
++++ b/core/ambdec.cpp
+@@ -126,7 +126,12 @@ al::optional<std::string> AmbDecConf::load(const char *fname) noexcept
+         }
+         else if(scope == ReaderScope::LFMatrix || scope == ReaderScope::HFMatrix)
+         {
+-            auto &gains = (scope == ReaderScope::LFMatrix) ? LFOrderGain : HFOrderGain;
++            using floatRef = float[MaxAmbiOrder + 1];
++            auto& gains = [&, this]() -> floatRef& {
++                if(scope == ReaderScope::LFMatrix)
++                    return LFOrderGain;
++                return HFOrderGain;
++            }();
+             auto *matrix = (scope == ReaderScope::LFMatrix) ? LFMatrix : HFMatrix;
+             auto &pos = (scope == ReaderScope::LFMatrix) ? lfmatrix_pos : hfmatrix_pos;
+ 

@@ -1,0 +1,91 @@
+diff --git a/src/util/fs_path.c b/src/util/fs_path.c
+index 9d5c99eab..ae62d74d8 100644
+--- a/src/util/fs_path.c
++++ b/src/util/fs_path.c
+@@ -1198,7 +1198,7 @@ int git_fs_path_direach(
+ 	return error;
+ }
+ 
+-#if defined(GIT_WIN32) && !defined(__MINGW32__)
++#if 0
+ 
+ /* Using _FIND_FIRST_EX_LARGE_FETCH may increase performance in Windows 7
+  * and better.
+diff --git a/src/util/fs_path.h b/src/util/fs_path.h
+index 43f7951ad..a3704727d 100644
+--- a/src/util/fs_path.h
++++ b/src/util/fs_path.h
+@@ -480,7 +480,7 @@ extern bool git_fs_path_does_decompose_unicode(const char *root);
+ 
+ typedef struct git_fs_path_diriter git_fs_path_diriter;
+ 
+-#if defined(GIT_WIN32) && !defined(__MINGW32__)
++#if 0
+ 
+ struct git_fs_path_diriter
+ {
+diff --git a/src/util/win32/posix_w32.c b/src/util/win32/posix_w32.c
+index ace23200f..5b35e08a5 100644
+--- a/src/util/win32/posix_w32.c
++++ b/src/util/win32/posix_w32.c
+@@ -431,8 +431,19 @@ out:
+ 	return isdir;
+ }
+ 
++typedef BOOLEAN(APIENTRY* CreateSymbolicLinkW_t)(LPCWSTR lpSymlinkFileName, LPCWSTR lpTargetFileName, DWORD dwFlags);
++
+ int p_symlink(const char *target, const char *path)
+ {
++	static CreateSymbolicLinkW_t pCreateSymbolicLinkW = NULL;
++	if(pCreateSymbolicLinkW == NULL) {
++	    HMODULE hModule = GetModuleHandleW(L"Kernel32.lib");
++	    pCreateSymbolicLinkW = (CreateSymbolicLinkW_t)GetProcAddress(hModule, "CreateSymbolicLinkW");
++	    if(pCreateSymbolicLinkW == NULL)
++		pCreateSymbolicLinkW = (void*)1;
++	}
++	if(pCreateSymbolicLinkW == (void*)1)
++	    return git_futils_fake_symlink(target, path);
+ 	git_win32_path target_w, path_w;
+ 	DWORD dwFlags;
+ 
+@@ -451,7 +462,7 @@ int p_symlink(const char *target, const char *path)
+ 	if (target_is_dir(target, path))
+ 		dwFlags |= SYMBOLIC_LINK_FLAG_DIRECTORY;
+ 
+-	if (!CreateSymbolicLinkW(path_w, target_w, dwFlags))
++	if (!pCreateSymbolicLinkW(path_w, target_w, dwFlags))
+ 		return -1;
+ 
+ 	return 0;
+@@ -664,10 +675,22 @@ int p_getcwd(char *buffer_out, size_t size)
+ 	return 0;
+ }
+ 
++typedef DWORD(WINAPI* GetFinalPathNameByHandleW_t)(HANDLE, LPWSTR, DWORD, DWORD);
++
+ static int getfinalpath_w(
+ 	git_win32_path dest,
+ 	const wchar_t *path)
+ {
++	static GetFinalPathNameByHandleW_t pGetFinalPathNameByHandleW = NULL;
++	if(pGetFinalPathNameByHandleW == NULL) {
++	    HMODULE hModule = GetModuleHandleW(L"Kernel32.lib");
++	    pGetFinalPathNameByHandleW = (GetFinalPathNameByHandleW_t)GetProcAddress(hModule, "GetFinalPathNameByHandleW");
++	    if(pGetFinalPathNameByHandleW == NULL)
++		pGetFinalPathNameByHandleW = (void*)1;
++	}
++	if(pGetFinalPathNameByHandleW == (void*)1)
++	    return -1;
++
+ 	HANDLE hFile;
+ 	DWORD dwChars;
+ 
+@@ -681,7 +704,7 @@ static int getfinalpath_w(
+ 		return -1;
+ 
+ 	/* Call GetFinalPathNameByHandle */
+-	dwChars = GetFinalPathNameByHandleW(hFile, dest, GIT_WIN_PATH_UTF16, FILE_NAME_NORMALIZED);
++	dwChars = pGetFinalPathNameByHandleW(hFile, dest, GIT_WIN_PATH_UTF16, FILE_NAME_NORMALIZED);
+ 	CloseHandle(hFile);
+ 
+ 	if (!dwChars || dwChars >= GIT_WIN_PATH_UTF16)

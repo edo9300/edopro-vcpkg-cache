@@ -1,2 +1,2 @@
-* text=auto
+*.patch -text
 ports/** -linguist-detectable

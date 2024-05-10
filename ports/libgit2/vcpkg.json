@@ -1,9 +1,9 @@
 {
   "name": "libgit2",
-  "version-semver": "1.4.4",
-  "port-version": 1,
-  "description": "Git linkable library",
+  "version-semver": "1.8.0",
+  "description": "A C library implementing the Git core methods with a solid API",
   "homepage": "https://github.com/libgit2/libgit2",
+  "license": null,
   "supports": "!uwp",
   "dependencies": [
     {
@@ -14,8 +14,39 @@
       "name": "vcpkg-cmake-config",
       "host": true
     },
-    "openssl",
     "zlib",
     "libssh2"
-  ]
+  ],
+  "default-features": [
+    "ssl"
+  ],
+  "features": {
+    "openssl": {
+      "description": "SSL support (OpenSSL)",
+      "dependencies": [
+        "openssl"
+      ]
+    },
+    "ssh": {
+      "description": "SSH support via libssh2",
+      "dependencies": [
+        "libssh2"
+      ]
+    },
+    "ssl": {
+      "description": "Default SSL backend",
+      "dependencies": [
+        {
+          "name": "libgit2",
+          "default-features": false,
+          "features": [
+            "openssl"
+          ]
+        }
+      ]
+    },
+    "tools": {
+      "description": "Build CLI tools"
+    }
+  }
 }

@@ -1,0 +1,70 @@
+diff --git a/src/util/posix.c b/src/util/posix.c
+index cfc0e0751..0ac7f27c6 100644
+--- a/src/util/posix.c
++++ b/src/util/posix.c
+@@ -302,13 +302,22 @@ int p_munmap(git_map *map)
+ 
+ #endif
+ 
+-#if defined(GIT_IO_POLL) || defined(GIT_IO_WSAPOLL)
++#if defined(GIT_IO_POLL)
+ 
+ /* Handled by posix.h; this test simplifies the final else */
+ 
+-#elif defined(GIT_IO_SELECT)
++#elif defined(GIT_IO_SELECT) || defined(GIT_IO_WSAPOLL)
+ 
+-int p_poll(struct pollfd *fds, unsigned int nfds, int timeout_ms)
++#if defined(GIT_IO_WSAPOLL)
++#ifndef MAX
++#define MAX(x, y) (((x) > (y) ? (x) : (y)))
++#endif
++static
++int p_poll_select
++#else
++int p_poll
++#endif
++(struct pollfd *fds, unsigned int nfds, int timeout_ms)
+ {
+ 	fd_set read_fds, write_fds, except_fds;
+ 	struct timeval timeout = { 0, 0 };
+@@ -352,6 +361,26 @@ done:
+ 	return ret;
+ }
+ 
++#if defined(GIT_IO_WSAPOLL)
++
++typedef int(WSAAPI* WSAPoll_t)(struct pollfd *fdArray, ULONG fds, INT timeout);
++
++int p_poll(struct pollfd *fds, unsigned int nfds, int timeout)
++{
++	static WSAPoll_t pWSAPoll = NULL;
++	if(pWSAPoll == NULL) {
++		HMODULE hModule = GetModuleHandleW(L"Ws2_32.dll");
++		pWSAPoll = (WSAPoll_t)GetProcAddress(hModule, "WSAPoll");
++		if(pWSAPoll == NULL)
++			pWSAPoll = (void*)1;
++	}
++	if(pWSAPoll == (void*)1)
++		return p_poll_select(fds, nfds, timeout);
++	return pWSAPoll(fds, nfds, timeout);
++}
++
++#endif
++
+ #else
+ # error no poll compatible implementation
+ #endif
+diff --git a/src/util/posix.h b/src/util/posix.h
+index 74707453a..1fcf2e987 100644
+--- a/src/util/posix.h
++++ b/src/util/posix.h
+@@ -200,7 +200,7 @@ extern const char *p_gai_strerror(int ret);
+ # define p_poll poll
+ #elif GIT_IO_WSAPOLL
+ # include <winsock2.h>
+-# define p_poll WSAPoll
++extern int p_poll(struct pollfd *fds, unsigned int nfds, int timeout);
+ #else
+ # define POLLIN  0x01
+ # define POLLPRI 0x02
