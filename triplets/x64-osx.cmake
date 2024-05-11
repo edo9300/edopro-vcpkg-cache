@@ -13,6 +13,7 @@ set(CMAKE_MACOSX_RPATH TRUE)
 set(CMAKE_EXE_LINKER_FLAGS /opt/cctools/darwin/libclang_rt.osx.a)
 set(CMAKE_LIBRARY_PATH /opt/cctools/sdk/MacOSX12.1.sdk/System/Library/)
 set(CMAKE_SYSTEM_FRAMEWORK_PATH /opt/cctools/sdk/MacOSX12.1.sdk/System/Library/Frameworks/)
+set(CMAKE_OSX_SYSROOT /opt/cctools/sdk/MacOSX12.1.sdk/)
 
 set(VCPKG_CMAKE_SYSTEM_NAME Darwin)
 set(VCPKG_OSX_ARCHITECTURES x86_64)
