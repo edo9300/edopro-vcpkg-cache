@@ -325,8 +325,8 @@ jobs:
             triplet: arm64-osx
             os: macos-latest
             deployment_target: 11.0
-            developer_dir: /Applications/Xcode_13.2.1.app/Contents/Developer
-            sdkroot: /Applications/Xcode_13.2.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
+            developer_dir: /Applications/Xcode_14.3.1.app/Contents/Developer
+            sdkroot: /Applications/Xcode_14.3.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.3.sdk
     runs-on: ${{ matrix.os }}
     needs: create-release
     env:
