@@ -94,7 +94,7 @@ jobs:
       if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
       shell: cmd
       run: |
-        vcpkg install liblzma libevent openssl libgit2 ^
+        vcpkg install libevent openssl libgit2 ^
         freetype[bzip2,core,png,zlib] ^
         openal-soft ^
         curl[openssl] sqlite3 ^
@@ -177,7 +177,7 @@ jobs:
       if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
       run: |
         vcpkg install \
-          liblzma libevent sqlite3 \
+          libevent sqlite3 \
           irrlicht-rectclip \
           freetype[bzip2,core,png,zlib] \
           curl openssl libgit2 fmt nlohmann-json \
@@ -288,7 +288,7 @@ jobs:
       if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
       run: |
         vcpkg install \
-          liblzma libevent openssl libgit2 \
+          libevent openssl libgit2 \
           freetype[bzip2,core,png,zlib] \
           openal-soft \
           curl sqlite3 \
@@ -396,7 +396,7 @@ jobs:
       if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
       run: |
         vcpkg install --overlay-ports=ports \
-          liblzma libevent openssl libgit2 \
+          libevent openssl libgit2 \
           freetype[bzip2,core,png,zlib] \
           openal-soft \
           curl sqlite3 \
@@ -524,7 +524,7 @@ jobs:
       if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
       run: |
         vcpkg install \
-          liblzma libevent openssl libgit2 \
+          libevent openssl libgit2 \
           freetype[bzip2,core,png,zlib] \
           openal-soft \
           curl sqlite3 \
