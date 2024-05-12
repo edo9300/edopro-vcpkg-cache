@@ -5,6 +5,7 @@ vcpkg_from_github(
     SHA512 3571467a1d557bc03eade2ae9bb1a72fd94a89222e6ad9563078d646aac0b65ed1c3d829fb45dd3a6cdca806f7ba3b6393f0ce6571b43651959acaa1c2106396
     HEAD_REF master
     PATCHES
+        disable-microbench.patch
         fix-compile-options.patch
 )
 
