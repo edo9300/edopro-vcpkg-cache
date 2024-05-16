@@ -494,6 +494,9 @@ jobs:
         cd ../sdk
         ln $SPECIFIC_SDK -s $TARGET_SDK
         echo "PATH=/opt/cctools/bin:$PATH" >> $GITHUB_ENV
+        if [[ $ARCHIVE_NAME == "installed_armv7-ios-cctools.7z" ]]; then
+          echo "CFLAGS=-DBROKEN_CLANG_ATOMICS" >> $GITHUB_ENV
+        fi
     - name: Download and extract cached archive
       if: |
         (contains(github.event.head_commit.message, env.SKIP_CMD) != true &&
