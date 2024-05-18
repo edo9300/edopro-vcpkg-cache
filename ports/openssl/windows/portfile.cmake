@@ -81,7 +81,7 @@ vcpkg_build_nmake(
         ${CONFIGURE_OPTIONS} 
         ${OPENSSL_ARCH}
         "--prefix=${install_dir_native}"
-        "--openssldir=${install_dir_native}"
+        "--openssldir=C:\\openssl"
         "AS=${as}"
         "CC=${cc}"
         "CFLAGS=${VCPKG_COMBINED_C_FLAGS_RELEASE}"
@@ -94,7 +94,7 @@ vcpkg_build_nmake(
         ${OPENSSL_ARCH}
         --debug
         "--prefix=${install_dir_native}\\debug"
-        "--openssldir=${install_dir_native}\\debug"
+        "--openssldir=C:\\openssl"
         "AS=${as}"
         "CC=${cc}"
         "CFLAGS=${VCPKG_COMBINED_C_FLAGS_DEBUG}"
