@@ -148,6 +148,8 @@ jobs:
       VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}
       SKIP_CMD: ${{ format('[skip-{0}]', matrix.target_name) }}
       NEW_CMD: ${{ format('[new-{0}]', matrix.target_name) }}
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+      ACTIONS_RUNNER_FORCE_ACTIONS_NODE_VERSION: node16
     steps:
     - uses: actions/checkout@v1
       if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
