@@ -19,13 +19,15 @@ vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO openssl/openssl
     REF "openssl-${VERSION}"
-    SHA512 42cc11475d8b31706ec151c9aed0178e17b788c6b38636ae1cde363872139ed85f5b9efd0c75012f4d6f15ec8100e1afe5d528e72b88a5d3dea4125c9b0804aa
+    SHA512 71fc9b46a8f6b66a6e8c64a09a16f85bbf24a0fc882409c3f00bcb1c4eb7c86a6328d7480eca89c7a43e60e77a4250394dedfd107eebb28130753519d05765ea
     PATCHES
         cmake-config.patch
         command-line-length.patch
         script-prefix.patch
         windows/install-layout.patch
         windows/install-pdbs.patch
+        windows/mingw-i486-atomics.patch
+        windows/winnt-thread.patch
         unix/android-cc.patch
         unix/move-openssldir.patch
         unix/no-empty-dirs.patch
@@ -53,6 +55,10 @@ endif()
 
 if(NOT "tools" IN_LIST FEATURES)
     vcpkg_list(APPEND CONFIGURE_OPTIONS no-apps)
+endif()
+
+if("no-asm" IN_LIST FEATURES)
+    vcpkg_list(APPEND CONFIGURE_OPTIONS no-asm)
 endif()
 
 if("weak-ssl-ciphers" IN_LIST FEATURES)

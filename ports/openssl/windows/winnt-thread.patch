@@ -1,0 +1,16 @@
+diff -Naru nssl-3.3.0-961d78b8a1.clean/include/internal/thread_arch.h nssl-3.3.0-961d78b8a1/include/internal/thread_arch.h
+--- nssl-3.3.0-961d78b8a1.clean/include/internal/thread_arch.h	2024-04-09 14:12:22.000000000 +0200
++++ nssl-3.3.0-961d78b8a1/include/internal/thread_arch.h	2026-03-23 11:45:52.613345800 +0100
+@@ -25,11 +25,9 @@
+ #elif defined(OPENSSL_THREADS) && defined(OPENSSL_SYS_WINDOWS) && defined(_WIN32_WINNT)
+ #if _WIN32_WINNT >= 0x0600
+ #define OPENSSL_THREADS_WINNT
+-#elif _WIN32_WINNT >= 0x0501
++#else
+ #define OPENSSL_THREADS_WINNT
+ #define OPENSSL_THREADS_WINNT_LEGACY
+-#else
+-#define OPENSSL_THREADS_NONE
+ #endif
+ #else
+ #define OPENSSL_THREADS_NONE
