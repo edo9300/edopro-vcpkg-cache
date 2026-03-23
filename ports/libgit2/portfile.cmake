@@ -1,8 +1,8 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO libgit2/libgit2
-    REF v1.8.0
-    SHA512 e5634267bd9c6a594c9a954d09c657e7b8aadf213609bf7dd83b99863d0d0c7109a5277617dd508abc2da54ea3f12c2af1908d1aeb73c000e94056e2f3653144
+    REF v1.8.5
+    SHA512 5987e16b17d3ed7088a6310927d5a5d334357c2d074daf7c0bfe8492184b8787f7f861fb04d3f2d72df0319db4b226466a27b11eed6aaf785238c6dee21f5054
     HEAD_REF main
     PATCHES
         c-standard.diff # for 'inline' in system headers
@@ -11,7 +11,10 @@ vcpkg_from_github(
         mingw-winhttp.diff
         unofficial-config-export.diff
         cctools-libs.patch
+        winnt-getsystemtimes.patch
+        winxp-gettickcount.patch
         winxp-path.patch
+        winxp-tls.patch
         winxp-utf.patch
         winxp-wsapoll.patch
 )

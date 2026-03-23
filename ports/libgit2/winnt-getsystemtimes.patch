@@ -1,0 +1,13 @@
+diff -Naru v1.8.0-1cd8a38f70.clean/src/util/rand.c v1.8.0-1cd8a38f70/src/util/rand.c
+--- v1.8.0-1cd8a38f70.clean/src/util/rand.c	2024-03-20 21:19:37.000000000 +0100
++++ v1.8.0-1cd8a38f70/src/util/rand.c	2026-03-23 10:52:03.490142300 +0100
+@@ -49,7 +49,9 @@
+ 	*seed |= ((uint64_t)filetime.dwLowDateTime << 32);
+ 	*seed |= ((uint64_t)filetime.dwHighDateTime);
+ 
++#if (_WIN32_WINNT >= 0x0501)
+ 	GetSystemTimes(&idletime, &kerneltime, &usertime);
++#endif
+ 
+ 	*seed ^= ((uint64_t)idletime.dwLowDateTime << 32);
+ 	*seed ^= ((uint64_t)kerneltime.dwLowDateTime);
