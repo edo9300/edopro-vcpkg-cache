@@ -1,0 +1,21 @@
+diff -Naru .12-stable-4cd9cdb4cb.clean/evutil_time.c .12-stable-4cd9cdb4cb/evutil_time.c
+--- .12-stable-4cd9cdb4cb.clean/evutil_time.c	2026-03-23 16:44:58.339220600 +0100
++++ .12-stable-4cd9cdb4cb/evutil_time.c	2026-03-23 16:45:28.146926700 +0100
+@@ -200,7 +200,7 @@
+ 		gmtime_r(&t, &sys);
+ 		tm = &sys;
+ 		/** detect _gmtime64()/_gmtime64_s() */
+-#elif defined(EVENT__HAVE__GMTIME64_S)
++#elif defined(EVENT__HAVE__GMTIME64_S) && EVENT__SIZEOF_TIME_T > 4
+ 		errno_t err;
+ 		err = _gmtime64_s(&sys, &t);
+ 		if (err) {
+@@ -208,7 +208,7 @@
+ 		} else {
+ 			tm = &sys;
+ 		}
+-#elif defined(EVENT__HAVE__GMTIME64)
++#elif defined(EVENT__HAVE__GMTIME64) && EVENT__SIZEOF_TIME_T > 4
+ 		tm = _gmtime64(&t);
+ #else
+ 		tm = gmtime(&t);
