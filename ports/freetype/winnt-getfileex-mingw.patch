@@ -1,0 +1,20 @@
+diff -Naru -- a/builds/windows/ftsystem.c b/builds/windows/ftsystem.c
+--- a/builds/windows/ftsystem.c	2023-02-27 06:39:44.000000000 +0100
++++ b/builds/windows/ftsystem.c	2026-03-23 16:05:47.621814900 +0100
+@@ -298,7 +298,7 @@
+     !defined( _WIN32_WINNT ) || _WIN32_WINNT <= 0x0400
+ 
+   FT_LOCAL_DEF( BOOL )
+-  GetFileSizeEx( HANDLE          hFile,
++  FTGetFileSizeEx( HANDLE          hFile,
+                  PLARGE_INTEGER  lpFileSize )
+   {
+     lpFileSize->u.LowPart = GetFileSize( hFile,
+@@ -310,6 +310,7 @@
+     else
+       return TRUE;
+   }
++#define GetFileSizeEx FTGetFileSizeEx
+ 
+ #endif  /* _WIN32_WCE || _WIN32_WINDOWS || _WIN32_WINNT <= 0x0400 */
+ 
