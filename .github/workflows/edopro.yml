@@ -40,9 +40,6 @@ jobs:
           - target_name: 'win19'
             package_name: installed_x86-windows-static-vs2019.zip
             os: windows-2019
-          - target_name: 'win15'
-            package_name: installed_x86-windows-static-vs2015.zip
-            os: windows-2019
     runs-on: ${{ matrix.os }}
     needs: create-release
     env:
@@ -80,12 +77,6 @@ jobs:
       with:
           arch: win32
           toolset: 14.16.27023
-    - name: Set proper windows build tools in path vs2015
-      if: (contains(github.event.head_commit.message, env.SKIP_CMD) != true && env.ARCHIVE_NAME == 'installed_x86-windows-static-vs2015.zip')
-      uses: ilammy/msvc-dev-cmd@v1
-      with:
-          arch: win32
-          toolset: '14.0'
     - name: Download and extract cached archive
       if: |
         (contains(github.event.head_commit.message, env.SKIP_CMD) != true &&
@@ -466,8 +457,6 @@ jobs:
         include:
           - target_name: '[skip-win]'
             package_name: installed_x86-windows-static.zip
-          - target_name: '[skip-win15]'
-            package_name: installed_x86-windows-static-vs2015.zip
           - target_name: '[skip-win17]'
             package_name: installed_x86-windows-static-vs2017.zip
           - target_name: '[skip-win19]'
