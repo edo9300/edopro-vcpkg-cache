@@ -129,6 +129,11 @@ jobs:
         upload_url: ${{ needs.create-release.outputs.upload_url }}
         asset_path: ${{ steps.zip_binaries.outputs.asset_path }}
         asset_name: ${{ env.ARCHIVE_NAME }}
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v7
+      with:
+        path: ${{ steps.zip_binaries.outputs.asset_path }}
+        archive: false
 
   windows-mingw:
     strategy:
@@ -224,6 +229,11 @@ jobs:
         upload_url: ${{ needs.create-release.outputs.upload_url }}
         asset_path: ${{ steps.zip_binaries.outputs.asset_path }}
         asset_name: ${{ env.ARCHIVE_NAME }}
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v7
+      with:
+        path: ${{ steps.zip_binaries.outputs.asset_path }}
+        archive: false
 
   linux:
     strategy:
@@ -309,6 +319,11 @@ jobs:
         upload_url: ${{ needs.create-release.outputs.upload_url }}
         asset_path: ${{ steps.zip_binaries.outputs.asset_path }}
         asset_name: ${{ env.ARCHIVE_NAME }}
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v7
+      with:
+        path: ${{ steps.zip_binaries.outputs.asset_path }}
+        archive: false
 
   osx-cctools:
     strategy:
@@ -434,6 +449,11 @@ jobs:
         upload_url: ${{ needs.create-release.outputs.upload_url }}
         asset_path: ${{ steps.zip_binaries.outputs.asset_path }}
         asset_name: ${{ env.ARCHIVE_NAME }}
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v7
+      with:
+        path: ${{ steps.zip_binaries.outputs.asset_path }}
+        archive: false
 
   ios-cctools:
     strategy:
@@ -565,6 +585,11 @@ jobs:
         upload_url: ${{ needs.create-release.outputs.upload_url }}
         asset_path: ${{ steps.zip_binaries.outputs.asset_path }}
         asset_name: ${{ env.ARCHIVE_NAME }}
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v7
+      with:
+        path: ${{ steps.zip_binaries.outputs.asset_path }}
+        archive: false
 
   passthroughs:
     runs-on: ubuntu-latest
