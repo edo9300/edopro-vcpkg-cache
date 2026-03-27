@@ -163,12 +163,6 @@ jobs:
       if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
       with:
         fetch-depth: 1
-    - name: Install mingw lite toolchain
-      if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
-      shell: bash
-      run: |
-        ./ci/install_mingw_lite.sh
-        file /usr/local/share/vcpkg
     - name: Install vcpkg
       if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
       shell: bash
@@ -187,6 +181,12 @@ jobs:
       run: |
         ./ci/download_vcpkg_archive.sh
         ./ci/extract_vcpkg_archive.sh
+    - name: Install mingw lite toolchain
+      if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
+      shell: bash
+      run: |
+        ./ci/install_mingw_lite.sh
+        file /usr/local/share/vcpkg
     - name: Upgrade vcpkg dependencies
       if: |
         (contains(github.event.head_commit.message, env.SKIP_CMD) != true &&
