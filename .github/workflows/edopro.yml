@@ -343,6 +343,18 @@ jobs:
       if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
       with:
         fetch-depth: 1
+    - name: Install deps for cctools' ld
+      if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
+      run: |
+        cd /tmp
+        wget http://security.ubuntu.com/ubuntu/pool/main/o/openssl/openssl_1.1.1f-1ubuntu2_amd64.deb
+        wget http://security.ubuntu.com/ubuntu/pool/main/o/openssl/libssl-dev_1.1.1f-1ubuntu2_amd64.deb
+        wget http://security.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+        sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+        sudo dpkg -i libssl-dev_1.1.1f-1ubuntu2_amd64.deb
+        sudo dpkg -i openssl_1.1.1f-1ubuntu2_amd64.deb
+        sudo apt update
+        sudo apt install libxml2 libc++1
     - name: Download cctools
       if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
       run: |
@@ -351,6 +363,7 @@ jobs:
         tar xf cctools.tar.xz
         cd cctools/bin
         ln x86_64-apple-darwin11-lipo -s lipo
+        ln x86_64-apple-darwin11-otool -s otool
         ln llvm-install-name-tool -s install_name_tool
         echo "PATH=/opt/cctools/bin:$PATH" >> $GITHUB_ENV
     - name: Fix openal-soft framework paths
