@@ -7,6 +7,7 @@ vcpkg_from_github(
     PATCHES
       c12ada68951ea67a59bef7d4fcdf22334990c12a.patch # Merged upstream, remove in next version
       cpp-conformance-fix.patch
+      cstdint.patch
 )
 
 vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS

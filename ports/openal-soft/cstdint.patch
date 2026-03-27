@@ -1,0 +1,33 @@
+diff -Naru 1.23.1-180897dbaa.clean/alc/alu.h 1.23.1-180897dbaa/alc/alu.h
+--- 1.23.1-180897dbaa.clean/alc/alu.h	2023-04-11 21:46:23.000000000 +0200
++++ 1.23.1-180897dbaa/alc/alu.h	2026-03-23 16:51:26.082042800 +0100
+@@ -2,6 +2,7 @@
+ #define ALU_H
+ 
+ #include <bitset>
++#include <cstdint>
+ 
+ #include "aloptional.h"
+ 
+diff -Naru 1.23.1-180897dbaa.clean/core/mixer/defs.h 1.23.1-180897dbaa/core/mixer/defs.h
+--- 1.23.1-180897dbaa.clean/core/mixer/defs.h	2023-04-11 21:46:23.000000000 +0200
++++ 1.23.1-180897dbaa/core/mixer/defs.h	2026-03-23 16:52:10.290269500 +0100
+@@ -2,6 +2,7 @@
+ #define CORE_MIXER_DEFS_H
+ 
+ #include <array>
++#include <cstdint>
+ #include <stdlib.h>
+ 
+ #include "alspan.h"
+diff -Naru 1.23.1-180897dbaa.clean/core/uhjfilter.h 1.23.1-180897dbaa/core/uhjfilter.h
+--- 1.23.1-180897dbaa.clean/core/uhjfilter.h	2023-04-11 21:46:23.000000000 +0200
++++ 1.23.1-180897dbaa/core/uhjfilter.h	2026-03-23 16:52:49.618481300 +0100
+@@ -2,6 +2,7 @@
+ #define CORE_UHJFILTER_H
+ 
+ #include <array>
++#include <cstdint>
+ 
+ #include "almalloc.h"
+ #include "alspan.h"
