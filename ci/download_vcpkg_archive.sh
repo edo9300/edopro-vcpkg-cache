@@ -7,7 +7,13 @@ GITHUB_TOKEN=${3:-$GITHUB_TOKEN}
 
 if [[ "$REF_TYPE" == "tag" ]]; then
 	curl -H "Authorization: token $GITHUB_TOKEN" -o tmp.json $RELEASE_URL
-	echo "$(node -e "console.log(JSON.stringify(JSON.parse(require('fs').readFileSync('./tmp.json'))[1]))")" >> previous.json
+	echo "$(node -e "\
+const json = JSON.parse(require('fs').readFileSync('./tmp.json')); \
+console.log(JSON.stringify(Object.keys(json).map(function (key) { \
+  return json[key]; \
+}).sort(function (itemA, itemB) { \
+  return itemA.id < itemB.id ? 1 : -1; \
+})[1]));")" > previous.json
 	rm -f tmp.json
 else
 	curl -H "Authorization: token $GITHUB_TOKEN" -o previous.json $RELEASE_URL/latest

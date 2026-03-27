@@ -608,8 +608,6 @@ jobs:
             package_name: installed_x86-windows-static.zip
           - target_name: '[skip-win17]'
             package_name: installed_x86-windows-static-vs2017.zip
-          - target_name: '[skip-win19]'
-            package_name: installed_x86-windows-static-vs2019.zip
           - target_name: '[skip-win22]'
             package_name: installed_x86-windows-static-vs2022.zip
           - target_name: '[skip-mingw]'
