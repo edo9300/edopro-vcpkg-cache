@@ -119,6 +119,101 @@ jobs:
         asset_path: ${{ steps.zip_binaries.outputs.asset_path }}
         asset_name: ${{ env.ARCHIVE_NAME }}
 
+  windows-mingw:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target_name: 'mingw'
+            triplet: x86-mingw-static
+            mingw_lite_variant: '-msvcrt'
+            package_name: installed_x86-windows-mingw-static.zip
+          - target_name: 'mingw-nt4'
+            triplet: x86-i486-mingw-static
+            mingw_lite_variant: '_486-msvcrt_win98'
+            package_name: installed_x86-windows-mingw-nt4-static.zip
+    runs-on: ubuntu-latest
+    needs: create-release
+    env:
+      VCPKG_INSTALLATION_ROOT: /tmp/vcpkg
+      ARCHIVE_NAME: ${{ matrix.package_name }}
+      VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}
+      VCPKG_OVERLAY_TRIPLETS: triplets
+      SKIP_CMD: ${{ format('[skip-{0}]', matrix.target_name) }}
+      NEW_CMD: ${{ format('[new-{0}]', matrix.target_name) }}
+      MINGW_LITE_VARIANT: ${{ matrix.mingw_lite_variant }}
+    steps:
+    - uses: actions/checkout@v1
+      if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
+      with:
+        fetch-depth: 1
+    - name: Install mingw lite toolchain
+      if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
+      shell: bash
+      run: |
+        ./ci/install_mingw_lite.sh
+        file /usr/local/share/vcpkg
+    - name: Install vcpkg
+      if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
+      shell: bash
+      run: |
+        mkdir -p $VCPKG_INSTALLATION_ROOT
+        git clone https://github.com/microsoft/vcpkg $VCPKG_INSTALLATION_ROOT --depth 1
+        cd $VCPKG_INSTALLATION_ROOT
+        ./bootstrap-vcpkg.sh --disableMetrics
+        echo "PATH=$VCPKG_INSTALLATION_ROOT:$PATH" >> $GITHUB_ENV
+    - name: Download and extract cached archive
+      if: |
+        (contains(github.event.head_commit.message, env.SKIP_CMD) != true &&
+        contains(github.event.head_commit.message, '[new]') != true &&
+        contains(github.event.head_commit.message, env.NEW_CMD) != true)
+      shell: bash
+      run: |
+        ./ci/download_vcpkg_archive.sh
+        ./ci/extract_vcpkg_archive.sh
+    - name: Upgrade vcpkg dependencies
+      if: |
+        (contains(github.event.head_commit.message, env.SKIP_CMD) != true &&
+        contains(github.event.head_commit.message, '[new]') != true &&
+        contains(github.event.head_commit.message, env.NEW_CMD) != true)
+      shell: bash
+      run: |
+        vcpkg upgrade --no-dry-run
+    - name: Install openssl no-asm
+      if: (contains(github.event.head_commit.message, env.SKIP_CMD) != true && env.ARCHIVE_NAME == 'installed_x86-windows-mingw-nt4-static.zip')
+      shell: bash
+      run: |
+        vcpkg install openssl[no-asm]
+    - name: Install openssl asm
+      if: (contains(github.event.head_commit.message, env.SKIP_CMD) != true && env.ARCHIVE_NAME != 'installed_x86-windows-mingw-nt4-static.zip')
+      shell: bash
+      run: |
+        vcpkg install openssl
+    - name: Install dependencies
+      if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
+      shell: bash
+      run: |
+        vcpkg install libevent libgit2 \
+        freetype[bzip2,core,png,zlib] \
+        openal-soft \
+        curl[openssl] sqlite3 \
+        libflac libvorbis \
+        fmt nlohmann-json \
+        bzip2 libjpeg-turbo \
+        libpng zlib discord-rpc-payload
+    - name: Zip binaries
+      if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
+      id: zip_binaries
+      shell: bash
+      run: ./ci/zip_binaries.sh
+    - name: Upload binaries to GitHub
+      if: (github.ref_type == 'tag' && contains(github.event.head_commit.message, env.SKIP_CMD) != true)
+      uses: shogo82148/actions-upload-release-asset@v1
+      with:
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
+        asset_path: ${{ steps.zip_binaries.outputs.asset_path }}
+        asset_name: ${{ env.ARCHIVE_NAME }}
+
   linux:
     strategy:
       fail-fast: false
@@ -161,7 +256,7 @@ jobs:
     - name: Install vcpkg
       if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
       run: |
-        git clone https://github.com/microsoft/vcpkg $VCPKG_INSTALLATION_ROOT
+        git clone https://github.com/microsoft/vcpkg $VCPKG_INSTALLATION_ROOT --depth 1
         cd $VCPKG_INSTALLATION_ROOT
         ./bootstrap-vcpkg.sh --disableMetrics
     - name: Download and extract cached archive
@@ -463,6 +558,10 @@ jobs:
             package_name: installed_x86-windows-static-vs2019.zip
           - target_name: '[skip-win22]'
             package_name: installed_x86-windows-static-vs2022.zip
+          - target_name: '[skip-mingw]'
+            package_name: installed_x86-windows-mingw-static.zip
+          - target_name: '[skip-mingwnt4]'
+            package_name: installed_x86-windows-mingw-nt4-static.zip
           - target_name: '[skip-linux]'
             package_name: installed_x64-linux.7z
           - target_name: '[skip-linux64]'
