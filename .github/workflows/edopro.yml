@@ -130,6 +130,7 @@ jobs:
         asset_path: ${{ steps.zip_binaries.outputs.asset_path }}
         asset_name: ${{ env.ARCHIVE_NAME }}
     - name: Upload artifacts
+      if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
       uses: actions/upload-artifact@v7
       with:
         path: ${{ steps.zip_binaries.outputs.asset_path }}
@@ -230,6 +231,7 @@ jobs:
         asset_path: ${{ steps.zip_binaries.outputs.asset_path }}
         asset_name: ${{ env.ARCHIVE_NAME }}
     - name: Upload artifacts
+      if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
       uses: actions/upload-artifact@v7
       with:
         path: ${{ steps.zip_binaries.outputs.asset_path }}
@@ -320,6 +322,7 @@ jobs:
         asset_path: ${{ steps.zip_binaries.outputs.asset_path }}
         asset_name: ${{ env.ARCHIVE_NAME }}
     - name: Upload artifacts
+      if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
       uses: actions/upload-artifact@v7
       with:
         path: ${{ steps.zip_binaries.outputs.asset_path }}
@@ -450,6 +453,7 @@ jobs:
         asset_path: ${{ steps.zip_binaries.outputs.asset_path }}
         asset_name: ${{ env.ARCHIVE_NAME }}
     - name: Upload artifacts
+      if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
       uses: actions/upload-artifact@v7
       with:
         path: ${{ steps.zip_binaries.outputs.asset_path }}
@@ -586,6 +590,7 @@ jobs:
         asset_path: ${{ steps.zip_binaries.outputs.asset_path }}
         asset_name: ${{ env.ARCHIVE_NAME }}
     - name: Upload artifacts
+      if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
       uses: actions/upload-artifact@v7
       with:
         path: ${{ steps.zip_binaries.outputs.asset_path }}
