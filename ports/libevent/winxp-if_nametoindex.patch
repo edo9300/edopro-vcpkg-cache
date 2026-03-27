@@ -1,0 +1,118 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 676727f1..d16b695b 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -974,18 +974,6 @@ add_event_library(event SOURCES ${SRC_CORE} ${SRC_EXTRA})
+ 
+ set(WIN32_GETOPT)
+ if (WIN32)
+-    set(_TMPLIBS)
+-    if (${EVENT_LIBRARY_STATIC})
+-        list(APPEND _TMPLIBS event_core_static event_static)
+-    endif()
+-    if (${EVENT_LIBRARY_SHARED})
+-        list(APPEND _TMPLIBS event_core_shared event_shared)
+-    endif()
+-    foreach(lib ${_TMPLIBS})
+-        target_link_libraries(${lib} iphlpapi)
+-    endforeach()
+-    unset(_TMPLIBS)
+-
+     list(APPEND WIN32_GETOPT
+          WIN32-Code/getopt.c
+          WIN32-Code/getopt_long.c)
+diff --git a/Makefile.am b/Makefile.am
+index 21815008..e7ff5487 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -177,7 +177,6 @@ include test/include.am
+ 
+ if BUILD_WIN32
+ 
+-SYS_CORE_LIBS = -liphlpapi
+ SYS_LIBS = -lws2_32 -lshell32 -ladvapi32
+ SYS_SRC = win32select.c buffer_iocp.c event_iocp.c \
+ 	bufferevent_async.c
+@@ -189,7 +188,6 @@ endif
+ 
+ else
+ 
+-SYS_CORE_LIBS =
+ SYS_LIBS =
+ SYS_SRC =
+ SYS_INCLUDES =
+@@ -266,11 +264,11 @@ AM_LDFLAGS = $(LIBEVENT_LDFLAGS)
+ GENERIC_LDFLAGS = -version-info $(VERSION_INFO) $(RELEASE) $(NO_UNDEFINED) $(AM_LDFLAGS)
+ 
+ libevent_la_SOURCES = $(CORE_SRC) $(EXTRAS_SRC)
+-libevent_la_LIBADD = @LTLIBOBJS@ $(SYS_LIBS) $(SYS_CORE_LIBS)
++libevent_la_LIBADD = @LTLIBOBJS@ $(SYS_LIBS)
+ libevent_la_LDFLAGS = $(GENERIC_LDFLAGS)
+ 
+ libevent_core_la_SOURCES = $(CORE_SRC)
+-libevent_core_la_LIBADD = @LTLIBOBJS@ $(SYS_LIBS) $(SYS_CORE_LIBS)
++libevent_core_la_LIBADD = @LTLIBOBJS@ $(SYS_LIBS)
+ libevent_core_la_LDFLAGS = $(GENERIC_LDFLAGS)
+ 
+ if PTHREADS
+diff --git a/evutil.c b/evutil.c
+index 9817f086..2be41faa 100644
+--- a/evutil.c
++++ b/evutil.c
+@@ -41,7 +41,6 @@
+ /* For structs needed by GetAdaptersAddresses */
+ #define _WIN32_WINNT 0x0501
+ #include <iphlpapi.h>
+-#include <netioapi.h>
+ #endif
+ 
+ #include <sys/types.h>
+@@ -1988,6 +1987,39 @@ evutil_inet_ntop(int af, const void *src, char *dst, size_t len)
+ #endif
+ }
+ 
++
++#ifdef _WIN32
++typedef ULONG(WINAPI *if_nametoindex_fn_t)(PCSTR);
++
++static ULONG
++WINAPI fallback_if_nametoindex(PCSTR ifname)
++{
++	(void)ifname;
++	return 0;
++}
++
++unsigned
++if_nametoindex_fn(const char *ifname)
++{
++	/* The function if_nametoindex is only available starting from
++	   Windows Vista. Checking for its existence at runtime and if
++	   it's not found, return 0.
++	*/
++	static if_nametoindex_fn_t fn = NULL;
++	if(fn == NULL)
++	{
++		HMODULE lib = evutil_load_windows_system_library_(TEXT("iphlpapi.dll"));
++		if (!lib || !(fn = (if_nametoindex_fn_t)GetProcAddress(lib, "if_nametoindex")))
++		{
++			fn = &fallback_if_nametoindex;
++		}
++	}
++	return fn(ifname);
++}
++#else
++#define if_nametoindex_fn if_nametoindex
++#endif
++
+ int
+ evutil_inet_pton_scope(int af, const char *src, void *dst, unsigned *indexp)
+ {
+@@ -2007,7 +2039,7 @@ evutil_inet_pton_scope(int af, const char *src, void *dst, unsigned *indexp)
+ 	if (cp == NULL)
+ 		return evutil_inet_pton(af, src, dst);
+ 
+-	if_index = if_nametoindex(cp + 1);
++	if_index = if_nametoindex_fn(cp + 1);
+ 	if (if_index == 0) {
+ 		/* Could be numeric */
+ 		if_index = strtoul(cp + 1, &check, 10);

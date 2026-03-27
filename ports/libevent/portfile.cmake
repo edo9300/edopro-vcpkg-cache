@@ -9,6 +9,7 @@ vcpkg_from_github(
         fix-file_path.patch
         fix-LibeventConfig_cmake_in_path.patch
         mingw-gmtime.patch
+        winxp-if_nametoindex.patch
 )
 
 vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
