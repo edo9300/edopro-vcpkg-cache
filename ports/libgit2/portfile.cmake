@@ -9,6 +9,7 @@ vcpkg_from_github(
         cli-include-dirs.diff
         dependencies.diff
         mingw-winhttp.diff
+        mingw-qsort.patch
         unofficial-config-export.diff
         cctools-libs.patch
         winnt-getsystemtimes.patch

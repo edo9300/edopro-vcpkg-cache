@@ -1,0 +1,15 @@
+diff --git a/src/util/util.c b/src/util/util.c
+index 3e4d934..302be8a 100644
+--- a/src/util/util.c
++++ b/src/util/util.c
+@@ -18,6 +18,10 @@
+ # endif
+ # include <windows.h>
+ 
++# if (_WIN32_WINNT < 0x0600) && defined(GIT_QSORT_MSC) && defined(__MINGW32__)
++#  undef GIT_QSORT_MSC
++# endif
++
+ # ifdef GIT_QSORT_MSC
+ #  include <search.h>
+ # endif
