@@ -12,11 +12,11 @@ vcpkg_from_github(
         mingw-qsort.patch
         unofficial-config-export.diff
         cctools-libs.patch
+        win2k-utf.patch
         winnt-getsystemtimes.patch
         winxp-gettickcount.patch
         winxp-path.patch
         winxp-tls.patch
-        winxp-utf.patch
         winxp-wsapoll.patch
 )
 file(REMOVE_RECURSE

@@ -1,0 +1,82 @@
+diff --git a/src/util/win32/utf-conv.c b/src/util/win32/utf-conv.c
+index ad35c0c35..8e6e502d2 100644
+--- a/src/util/win32/utf-conv.c
++++ b/src/util/win32/utf-conv.c
+@@ -15,6 +15,32 @@ GIT_INLINE(void) git__set_errno(void)
+ 		errno = EINVAL;
+ }
+ 
++GIT_INLINE(DWORD) get_wide_chars_to_multi_byte_flags(void) {
++	static char inited = 0;
++	static DWORD flags;
++
++	/* Invalid code point check supported on Vista+ only */
++	if(!inited) {
++		flags = git_has_win32_version(6, 0, 0) ? WC_ERR_INVALID_CHARS : 0;
++		inited = 1;
++	}
++
++	return flags;
++}
++
++GIT_INLINE(DWORD) get_multi_byte_to_wide_chars_flags(void) {
++	static char inited = 0;
++	static DWORD flags;
++
++	/* Invalid code point check supported on 2k sp4+ only */
++	if(!inited) {
++		flags = git_has_win32_version(5, 0, 4) ? MB_ERR_INVALID_CHARS : 0;
++		inited = 1;
++	}
++
++	return flags;
++}
++
+ int git_utf8_to_16(wchar_t *dest, size_t dest_size, const char *src)
+ {
+ 	/* Length of -1 indicates NULL termination of the input string. */
+@@ -36,7 +62,7 @@ int git_utf8_to_16_with_len(
+ 	 * MultiByteToWideChar never returns int's minvalue, so underflow
+ 	 * is not possible.
+ 	 */
+-	len = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
++	len = MultiByteToWideChar(CP_UTF8, get_multi_byte_to_wide_chars_flags(),
+ 		src, src_len, dest, dest_size) - 1;
+ 
+ 	if (len < 0)
+@@ -66,7 +92,7 @@ int git_utf8_from_16_with_len(
+ 	 * WideCharToMultiByte never returns int's minvalue, so underflow
+ 	 * is not possible.
+ 	 */
+-	len = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS,
++	len = WideCharToMultiByte(CP_UTF8, get_wide_chars_to_multi_byte_flags(),
+ 		src, src_len, dest, dest_size, NULL, NULL) - 1;
+ 
+ 	if (len < 0)
+@@ -87,7 +113,7 @@ int git_utf8_to_16_alloc_with_len(wchar_t **dest, const char *src, int src_len)
+ 
+ 	*dest = NULL;
+ 
+-	utf16_size = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
++	utf16_size = MultiByteToWideChar(CP_UTF8, get_multi_byte_to_wide_chars_flags(),
+ 		src, src_len, NULL, 0);
+ 
+ 	if (!utf16_size) {
+@@ -121,7 +147,7 @@ int git_utf8_from_16_alloc_with_len(char **dest, const wchar_t *src, int src_len
+ 
+ 	*dest = NULL;
+ 
+-	utf8_size = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS,
++	utf8_size = WideCharToMultiByte(CP_UTF8, get_wide_chars_to_multi_byte_flags(),
+ 		src, src_len, NULL, 0, NULL, NULL);
+ 
+ 	if (!utf8_size) {
+@@ -132,7 +158,7 @@ int git_utf8_from_16_alloc_with_len(char **dest, const wchar_t *src, int src_len
+ 	*dest = git__malloc(utf8_size);
+ 	GIT_ERROR_CHECK_ALLOC(*dest);
+ 
+-	utf8_size = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS,
++	utf8_size = WideCharToMultiByte(CP_UTF8, get_wide_chars_to_multi_byte_flags(),
+ 		src, src_len, *dest, utf8_size, NULL, NULL);
+ 
+ 	if (utf8_size < 0) {
