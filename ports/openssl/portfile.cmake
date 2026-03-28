@@ -27,6 +27,7 @@ vcpkg_from_github(
         windows/install-layout.patch
         windows/install-pdbs.patch
         windows/mingw-i486-atomics.patch
+        windows/winnt-cryptacquirecontext.patch
         windows/winnt-thread.patch
         unix/android-cc.patch
         unix/move-openssldir.patch

@@ -1,0 +1,45 @@
+diff --git a/providers/implementations/rands/seeding/rand_win.c b/providers/implementations/rands/seeding/rand_win.c
+index 323a579..7dca2a8 100644
+--- a/providers/implementations/rands/seeding/rand_win.c
++++ b/providers/implementations/rands/seeding/rand_win.c
+@@ -44,6 +44,18 @@
+ #define INTEL_DEF_PROV L"Intel Hardware Cryptographic Service Provider"
+ #endif
+ 
++static inline BOOL call_crypt_acquire_context(HCRYPTPROV *phProv, LPCWSTR szContainer, LPCWSTR szProvider, DWORD dwProvType)
++{
++    DWORD dwFlags = CRYPT_VERIFYCONTEXT | CRYPT_SILENT;
++    BOOL res = CryptAcquireContextW(phProv, szContainer, szProvider, dwProvType, dwFlags);
++    if (res == 0)
++    {
++        dwFlags &= ~CRYPT_SILENT;
++        res = CryptAcquireContextW(phProv, szContainer, szProvider, dwProvType, dwFlags);
++    }
++    return res;
++}
++
+ size_t ossl_pool_acquire_entropy(RAND_POOL *pool)
+ {
+ #ifndef USE_BCRYPTGENRANDOM
+@@ -86,8 +98,7 @@ size_t ossl_pool_acquire_entropy(RAND_POOL *pool)
+     if (buffer != NULL) {
+         size_t bytes = 0;
+         /* poll the CryptoAPI PRNG */
+-        if (CryptAcquireContextW(&hProvider, NULL, NULL, PROV_RSA_FULL,
+-                CRYPT_VERIFYCONTEXT | CRYPT_SILENT)
++        if (call_crypt_acquire_context(&hProvider, NULL, NULL, PROV_RSA_FULL)
+             != 0) {
+             if (CryptGenRandom(hProvider, bytes_needed, buffer) != 0)
+                 bytes = bytes_needed;
+@@ -106,9 +117,8 @@ size_t ossl_pool_acquire_entropy(RAND_POOL *pool)
+     if (buffer != NULL) {
+         size_t bytes = 0;
+         /* poll the Pentium PRG with CryptoAPI */
+-        if (CryptAcquireContextW(&hProvider, NULL,
+-                INTEL_DEF_PROV, PROV_INTEL_SEC,
+-                CRYPT_VERIFYCONTEXT | CRYPT_SILENT)
++        if (call_crypt_acquire_context(&hProvider, NULL,
++                INTEL_DEF_PROV, PROV_INTEL_SEC)
+             != 0) {
+             if (CryptGenRandom(hProvider, bytes_needed, buffer) != 0)
+                 bytes = bytes_needed;
