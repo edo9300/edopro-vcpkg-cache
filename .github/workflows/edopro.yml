@@ -196,23 +196,22 @@ jobs:
       shell: bash
       run: |
         vcpkg upgrade --no-dry-run
-    - name: Install openssl no-asm
+    - name: Install openssl no-asm and openal-soft no-sse
       if: (contains(github.event.head_commit.message, env.SKIP_CMD) != true && env.ARCHIVE_NAME == 'installed_x86-windows-mingw-nt4-static.zip')
       shell: bash
       run: |
-        vcpkg install openssl[no-asm]
-    - name: Install openssl asm
+        vcpkg install openssl[no-asm] openal-soft[no-sse]
+    - name: Install openssl asm and openal-soft sse
       if: (contains(github.event.head_commit.message, env.SKIP_CMD) != true && env.ARCHIVE_NAME != 'installed_x86-windows-mingw-nt4-static.zip')
       shell: bash
       run: |
-        vcpkg install openssl
+        vcpkg install openssl openal-soft
     - name: Install dependencies
       if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
       shell: bash
       run: |
         vcpkg install libevent libgit2 \
         freetype[bzip2,core,png,zlib] \
-        openal-soft \
         curl[openssl] sqlite3 \
         libflac libvorbis \
         fmt nlohmann-json \

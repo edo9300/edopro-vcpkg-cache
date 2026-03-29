@@ -12,6 +12,8 @@ vcpkg_from_github(
 vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
     FEATURES
         pipewire  ALSOFT_BACKEND_PIPEWIRE
+	INVERTED_FEATURES
+		no-sse  ALSOFT_CPUEXT_SSE
 )
 
 if(VCPKG_LIBRARY_LINKAGE STREQUAL "dynamic")
