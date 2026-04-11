@@ -529,6 +529,12 @@ jobs:
         if [[ $ARCHIVE_NAME == "installed_armv7-ios-cctools.7z" ]]; then
           echo "CFLAGS=-DBROKEN_CLANG_ATOMICS" >> $GITHUB_ENV
         fi
+    - name: Fix libevent clock gettime
+      if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
+      shell: bash
+      run: |
+        rm ./ports/libevent/portfile.cmake
+        mv ./ports/libevent/portfile-no-clock-gettime.cmake ./ports/libevent/portfile.cmake
     - name: Download and extract cached archive
       if: |
         (contains(github.event.head_commit.message, env.SKIP_CMD) != true &&
@@ -611,7 +617,7 @@ jobs:
             package_name: installed_x86-windows-static-vs2022.zip
           - target_name: '[skip-mingw]'
             package_name: installed_x86-windows-mingw-static.zip
-          - target_name: '[skip-mingwnt4]'
+          - target_name: '[skip-mingw-nt4]'
             package_name: installed_x86-windows-mingw-nt4-static.zip
           - target_name: '[skip-linux]'
             package_name: installed_x64-linux.7z

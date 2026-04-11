@@ -1,6 +1,6 @@
 Source: libevent
 Version: 2.1.12
-Port-Version: 3
+Port-Version: 4
 Homepage: https://github.com/libevent/libevent
 Description: An event notification library
 Supports: !uwp
