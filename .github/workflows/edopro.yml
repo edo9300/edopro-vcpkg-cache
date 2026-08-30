@@ -383,12 +383,10 @@ jobs:
         ln x86_64-apple-darwin11-otool -s otool
         ln llvm-install-name-tool -s install_name_tool
         echo "PATH=/opt/cctools/bin:$PATH" >> $GITHUB_ENV
-    - name: Fix openal-soft framework paths
+    - name: Don't make libevent use clock_gettime
       if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
       shell: bash
       run: |
-        rm ./ports/openal-soft/portfile.cmake
-        mv ./ports/openal-soft/portfile-cctools.cmake ./ports/openal-soft/portfile.cmake
         rm ./ports/libevent/portfile.cmake
         mv ./ports/libevent/portfile-no-clock-gettime.cmake ./ports/libevent/portfile.cmake
     - name: Download and extract cached archive
@@ -422,11 +420,11 @@ jobs:
         mkdir -p $VCPKG_INSTALLATION_ROOT/installed/$VCPKG_DEFAULT_TRIPLET/include
         mkdir -p $VCPKG_INSTALLATION_ROOT/installed/$VCPKG_DEFAULT_TRIPLET/lib
         mkdir -p $VCPKG_INSTALLATION_ROOT/installed/$VCPKG_DEFAULT_TRIPLET/debug/lib
-        make -f $(realpath ../irrlicht-cctools-makefile) -Csource/Irrlicht staticlib_osx NDEBUG=1 -j2
+        make -f $(realpath ../irrlicht-cctools-makefile) -Csource/Irrlicht staticlib_osx NDEBUG=1 -j$(nproc)
         cp -r include $VCPKG_INSTALLATION_ROOT/installed/$VCPKG_DEFAULT_TRIPLET/include/irrlicht
         cp lib/MacOSX/libIrrlicht.a $VCPKG_INSTALLATION_ROOT/installed/$VCPKG_DEFAULT_TRIPLET/lib
         make -f $(realpath ../irrlicht-cctools-makefile) -Csource/Irrlicht staticlib_osx NDEBUG=1 clean
-        make -f $(realpath ../irrlicht-cctools-makefile) -Csource/Irrlicht staticlib_osx -j2
+        make -f $(realpath ../irrlicht-cctools-makefile) -Csource/Irrlicht staticlib_osx -j$(nproc)
         cp lib/MacOSX/libIrrlicht.a $VCPKG_INSTALLATION_ROOT/installed/$VCPKG_DEFAULT_TRIPLET/debug/lib
     - name: Install vcpkg dependencies
       if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
@@ -434,7 +432,6 @@ jobs:
         vcpkg install \
           libevent openssl libgit2 \
           freetype[bzip2,core,png,zlib] \
-          openal-soft \
           curl sqlite3 \
           libflac libvorbis \
           fmt nlohmann-json \
@@ -566,11 +563,11 @@ jobs:
         mkdir -p $VCPKG_INSTALLATION_ROOT/installed/$VCPKG_DEFAULT_TRIPLET/include
         mkdir -p $VCPKG_INSTALLATION_ROOT/installed/$VCPKG_DEFAULT_TRIPLET/lib
         mkdir -p $VCPKG_INSTALLATION_ROOT/installed/$VCPKG_DEFAULT_TRIPLET/debug/lib
-        make -f $(realpath ../irrlicht-cctools-makefile) -Csource/Irrlicht staticlib_ios NDEBUG=1 -j2
+        make -f $(realpath ../irrlicht-cctools-makefile) -Csource/Irrlicht staticlib_ios NDEBUG=1 -j$(nproc)
         cp -r include $VCPKG_INSTALLATION_ROOT/installed/$VCPKG_DEFAULT_TRIPLET/include/irrlicht
         cp lib/IOS/libIrrlicht.a $VCPKG_INSTALLATION_ROOT/installed/$VCPKG_DEFAULT_TRIPLET/lib
         make -f $(realpath ../irrlicht-cctools-makefile) -Csource/Irrlicht staticlib_ios NDEBUG=1 clean
-        make -f $(realpath ../irrlicht-cctools-makefile) -Csource/Irrlicht staticlib_ios -j2
+        make -f $(realpath ../irrlicht-cctools-makefile) -Csource/Irrlicht staticlib_ios -j$(nproc)
         cp lib/IOS/libIrrlicht.a $VCPKG_INSTALLATION_ROOT/installed/$VCPKG_DEFAULT_TRIPLET/debug/lib
     - name: Install vcpkg dependencies
       if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
@@ -578,7 +575,6 @@ jobs:
         vcpkg install \
           libevent openssl libgit2 \
           freetype[bzip2,core,png,zlib] \
-          openal-soft \
           curl sqlite3 \
           libflac libvorbis \
           fmt nlohmann-json
