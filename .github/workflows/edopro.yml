@@ -332,36 +332,69 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - target_name: 'osx-stdc++-cctools'
+            package_name: installed_x64-osx-stdc++-cctools.7z
+            cc: x86_64-apple-darwin21.2-clang
+            cxx: x86_64-apple-darwin21.2-clang++-gstdc++
+            ar: x86_64-apple-darwin21.2-ar
+            ranlib: x86_64-apple-darwin21.2-ranlib
+            triplet: x64-osx-stdc
+            release: osxcross
+          - target_name: 'osx64-stdc++-cctools'
+            package_name: installed_aarch64-osx-stdc++-cctools.7z
+            cc: aarch64-apple-darwin21.2-clang
+            cxx: aarch64-apple-darwin21.2-clang++-gstdc++
+            ar: aarch64-apple-darwin21.2-ar
+            ranlib: aarch64-apple-darwin21.2-ranlib
+            triplet: arm64-osx-stdc
+            release: osxcross
           - target_name: 'osx-cctools'
             package_name: installed_x64-osx-cctools.7z
-            clang: x86_64-macosx
-            compiler_arch: x86_64
+            cc: x86_64-macosx-clang
+            cxx: x86_64-macosx-clang++
+            ar: x86_64-apple-darwin11-ar
+            ranlib: x86_64-apple-darwin11-ranlib
             triplet: x64-osx
+            release: preview
           - target_name: 'osx64-cctools'
             package_name: installed_aarch64-osx-cctools.7z
-            clang: arm64-macosx
-            compiler_arch: arm
+            cc: arm64-macosx-clang
+            cxx: arm64-macosx-clang++
+            ar: arm-apple-darwin11-ar
+            ranlib: arm-apple-darwin11-ranlib
             triplet: arm64-osx
+            release: preview
     runs-on: ubuntu-latest
     needs: create-release
     env:
-      CC: ${{ format('/opt/cctools/bin/{0}-clang', matrix.clang) }}
-      CXX: ${{ format('/opt/cctools/bin/{0}-clang++', matrix.clang) }}
-      AR: ${{ format('/opt/cctools/bin/{0}-apple-darwin11-ar', matrix.compiler_arch) }}
-      RANLIB: ${{ format('/opt/cctools/bin/{0}-apple-darwin11-ranlib', matrix.compiler_arch) }}
+      CC: ${{ format('/opt/cctools/bin/{0}', matrix.cc) }}
+      CXX: ${{ format('/opt/cctools/bin/{0}', matrix.cxx) }}
+      AR: ${{ format('/opt/cctools/bin/{0}', matrix.ar) }}
+      RANLIB: ${{ format('/opt/cctools/bin/{0}', matrix.ranlib) }}
       ARCHIVE_NAME: ${{ matrix.package_name }}
       VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}
       SKIP_CMD: ${{ format('[skip-{0}]', matrix.target_name) }}
       NEW_CMD: ${{ format('[new-{0}]', matrix.target_name) }}
       VCPKG_OVERLAY_TRIPLETS: triplets
-      SDKROOT: /opt/cctools/sdk/MacOSX12.1.sdk
     steps:
     - uses: actions/checkout@v1
       if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
       with:
         fetch-depth: 1
-    - name: Install deps for cctools' ld
+    - name: Download cctools
       if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
+      run: |
+        cd /opt
+        wget https://github.com/edo9300/cctools-build/releases/download/${{ matrix.release }}/cctools.tar.xz
+        tar xf cctools.tar.xz
+        echo "PATH=/opt/cctools/bin:$PATH" >> $GITHUB_ENV
+        if [[ ${{ matrix.release }} == 'osxcross' ]]; then
+              echo "SDKROOT=/opt/cctools/SDK/MacOSX12.1.sdk" >> $GITHUB_ENV
+          else
+              echo "SDKROOT=/opt/cctools/sdk/MacOSX12.1.sdk" >> $GITHUB_ENV
+          fi
+    - name: Install deps for cctools
+      if: (contains(github.event.head_commit.message, env.SKIP_CMD) != true && matrix.release == 'preview')
       run: |
         cd /tmp
         wget http://security.ubuntu.com/ubuntu/pool/main/o/openssl/openssl_1.1.1f-1ubuntu2_amd64.deb
@@ -371,18 +404,11 @@ jobs:
         sudo dpkg -i libssl-dev_1.1.1f-1ubuntu2_amd64.deb
         sudo dpkg -i openssl_1.1.1f-1ubuntu2_amd64.deb
         sudo apt update
-        sudo apt install libxml2 libc++1
-    - name: Download cctools
-      if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
-      run: |
-        cd /opt
-        wget https://github.com/edo9300/cctools-build/releases/download/preview/cctools.tar.xz
-        tar xf cctools.tar.xz
-        cd cctools/bin
+        sudo apt -y install libxml2 libc++1
+        cd /opt/cctools/bin
         ln x86_64-apple-darwin11-lipo -s lipo
         ln x86_64-apple-darwin11-otool -s otool
         ln llvm-install-name-tool -s install_name_tool
-        echo "PATH=/opt/cctools/bin:$PATH" >> $GITHUB_ENV
     - name: Don't make libevent use clock_gettime
       if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
       shell: bash
@@ -623,6 +649,10 @@ jobs:
             package_name: installed_x64-osx-cctools.7z
           - target_name: '[skip-osx64-cctools]'
             package_name: installed_aarch64-osx-cctools.7z
+          - target_name: '[skip-osx-stdc++-cctools]'
+            package_name: installed_x64-osx-stdc++-cctools.7z
+          - target_name: '[skip-osx64-stdc++-cctools]'
+            package_name: installed_aarch64-osx-stdc++-cctools.7z
           - target_name: '[skip-ios-cctools]'
             package_name: installed_aarch64-ios-cctools.7z
           - target_name: '[skip-iosv7-cctools]'
