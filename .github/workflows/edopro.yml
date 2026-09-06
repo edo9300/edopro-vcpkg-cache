@@ -347,16 +347,16 @@ jobs:
     runs-on: ubuntu-latest
     needs: create-release
     env:
-      CC: ${{ format('/opt/cctools/bin/{0}-apple-darwin21.2-clang', matrix.arch) }}
-      CXX: ${{ format('/opt/cctools/bin/{0}-apple-darwin21.2-clang++{1}', matrix.arch, matrix.compiler_suffix) }}
-      AR: ${{ format('/opt/cctools/bin/{0}-apple-darwin21.2-ar', matrix.arch) }}
-      RANLIB: ${{ format('/opt/cctools/bin/{0}-apple-darwin21.2-ranlib', matrix.arch) }}
+      CC: ${{ format('/opt/cctools/bin/{0}-apple-darwin21.4-clang', matrix.arch) }}
+      CXX: ${{ format('/opt/cctools/bin/{0}-apple-darwin21.4-clang++{1}', matrix.arch, matrix.compiler_suffix) }}
+      AR: ${{ format('/opt/cctools/bin/{0}-apple-darwin21.4-ar', matrix.arch) }}
+      RANLIB: ${{ format('/opt/cctools/bin/{0}-apple-darwin21.4-ranlib', matrix.arch) }}
       ARCHIVE_NAME: ${{ format('installed_{0}-osx{1}-cctools.7z', matrix.package_prefix, matrix.stdc) }}
       VCPKG_DEFAULT_TRIPLET: ${{ format('{0}-osx{1}', matrix.triplet_prefix, matrix.triplet_suffix) }}
       SKIP_CMD: ${{ format('[skip-osx{0}{1}-cctools]', matrix.target_prefix, matrix.stdc) }}
       NEW_CMD: ${{ format('[new-osx{0}{1}-cctools]', matrix.target_prefix, matrix.stdc) }}
       VCPKG_OVERLAY_TRIPLETS: triplets
-      SDKROOT: /opt/cctools/SDK/MacOSX12.1.sdk
+      SDKROOT: /opt/cctools/SDK/MacOSX12.3.sdk
     steps:
     - uses: actions/checkout@v1
       if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
@@ -368,7 +368,7 @@ jobs:
         cd /opt
         wget https://github.com/edo9300/cctools-build/releases/download/osxcross/cctools.tar.xz
         tar xf cctools.tar.xz
-        echo "PATH=/opt/cctools/bin:$PATH" >> $GITHUB_ENV
+        echo "PATH=/opt/cctools/bin:/opt/cctools/clang/bin:$PATH" >> $GITHUB_ENV
     - name: Don't make libevent use clock_gettime
       if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
       shell: bash
@@ -421,7 +421,9 @@ jobs:
           curl sqlite3 \
           libflac libvorbis \
           fmt nlohmann-json \
-          discord-rpc-payload
+          discord-rpc-payload \
+          bzip2 libjpeg-turbo \
+          libpng zlib
     - name: 7-Zip binaries
       if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
       id: zip_binaries
@@ -563,7 +565,9 @@ jobs:
           freetype[bzip2,core,png,zlib] \
           curl sqlite3 \
           libflac libvorbis \
-          fmt nlohmann-json
+          fmt nlohmann-json \
+          bzip2 libjpeg-turbo \
+          libpng zlib
     - name: 7-Zip binaries
       if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
       id: zip_binaries
