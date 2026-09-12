@@ -588,7 +588,7 @@ jobs:
         archive: false
 
   passthroughs:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     needs: create-release
     if: github.ref_type == 'tag'
     strategy:
