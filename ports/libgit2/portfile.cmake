@@ -57,6 +57,7 @@ vcpkg_cmake_configure(
         "-DPKG_CONFIG_EXECUTABLE=${PKGCONFIG}"
         -DCMAKE_DISABLE_FIND_PACKAGE_GSSAPI:BOOL=ON
         -DUSE_WINHTTP=OFF
+        -DCMAKE_C_FLAGS="-Wno-incompatible-pointer-types"
         ${GIT2_FEATURES}
     OPTIONS_DEBUG
         -DBUILD_CLI=OFF

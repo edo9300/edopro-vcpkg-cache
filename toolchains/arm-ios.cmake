@@ -6,3 +6,6 @@ set(CMAKE_C_SIZEOF_DATA_PTR 4)
 set(CMAKE_CXX_SIZEOF_DATA_PTR 4)
 
 include("${CMAKE_CURRENT_LIST_DIR}/ios.cmake")
+
+# needed for openssl
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DBROKEN_CLANG_ATOMICS")
