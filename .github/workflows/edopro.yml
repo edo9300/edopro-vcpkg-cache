@@ -369,12 +369,6 @@ jobs:
         wget https://github.com/edo9300/cctools-build/releases/download/osxcross/cctools.tar.xz
         tar xf cctools.tar.xz
         echo "PATH=/opt/cctools/bin:/opt/cctools/clang/bin:$PATH" >> $GITHUB_ENV
-    - name: Don't make libevent use clock_gettime
-      if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
-      shell: bash
-      run: |
-        rm ./ports/libevent/portfile.cmake
-        mv ./ports/libevent/portfile-no-clock-gettime.cmake ./ports/libevent/portfile.cmake
     - name: Download and extract cached archive
       if: |
         (contains(github.event.head_commit.message, env.SKIP_CMD) != true &&
@@ -511,12 +505,6 @@ jobs:
         cd ../sdk
         ln $SPECIFIC_SDK -s $TARGET_SDK
         echo "PATH=/opt/cctools/bin:$PATH" >> $GITHUB_ENV
-    - name: Fix libevent clock gettime
-      if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
-      shell: bash
-      run: |
-        rm ./ports/libevent/portfile.cmake
-        mv ./ports/libevent/portfile-no-clock-gettime.cmake ./ports/libevent/portfile.cmake
     - name: Download and extract cached archive
       if: |
         (contains(github.event.head_commit.message, env.SKIP_CMD) != true &&
