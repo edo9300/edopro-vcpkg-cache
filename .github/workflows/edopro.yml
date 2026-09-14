@@ -356,7 +356,6 @@ jobs:
       SKIP_CMD: ${{ format('[skip-osx{0}{1}-cctools]', matrix.target_prefix, matrix.stdc) }}
       NEW_CMD: ${{ format('[new-osx{0}{1}-cctools]', matrix.target_prefix, matrix.stdc) }}
       VCPKG_OVERLAY_TRIPLETS: triplets
-      SDKROOT: /opt/cctools/SDK/MacOSX12.3.sdk
     steps:
     - uses: actions/checkout@v1
       if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
@@ -447,29 +446,21 @@ jobs:
             clang: arm64-iphoneos
             compiler_arch: arm
             triplet: arm64-ios
-            specific_sdk: iPhoneOS16.1.sdk
-            target_sdk: iPhoneOS.sdk
           - target_name: 'iosv7-cctools'
             package_name: installed_armv7-ios-cctools.7z
             clang: armv7-iphoneos
             compiler_arch: arm
             triplet: arm-ios
-            specific_sdk: iPhoneOS13.0.sdk
-            target_sdk: iPhoneOS.sdk
           - target_name: 'iossim-cctools'
             package_name: installed_x64-iossim-cctools.7z
             clang: x86_64-iphonesimulator
             compiler_arch: x86_64
             triplet: x64-iossim
-            specific_sdk: iPhoneSimulator16.1.sdk
-            target_sdk: iPhoneSimulator.sdk
           - target_name: 'iossim64-cctools'
             package_name: installed_aarch64-iossim-cctools.7z
             clang: arm64-iphonesimulator
             compiler_arch: arm
             triplet: arm64-iossim
-            specific_sdk: iPhoneSimulator16.1.sdk
-            target_sdk: iPhoneSimulator.sdk
     runs-on: ubuntu-latest
     needs: create-release
     env:
@@ -482,7 +473,6 @@ jobs:
       VCPKG_OVERLAY_TRIPLETS: triplets
       SKIP_CMD: ${{ format('[skip-{0}]', matrix.target_name) }}
       NEW_CMD: ${{ format('[new-{0}]', matrix.target_name) }}
-      SDKROOT: ${{ format('/opt/cctools/sdk/{0}', matrix.specific_sdk) }}
     steps:
     - uses: actions/checkout@v1
       if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
@@ -490,21 +480,11 @@ jobs:
         fetch-depth: 1
     - name: Download cctools
       if: contains(github.event.head_commit.message, env.SKIP_CMD) != true
-      env:
-        COMPILER_ARCH: ${{ matrix.compiler_arch }}
-        SPECIFIC_SDK: ${{ matrix.specific_sdk }}
-        TARGET_SDK: ${{ matrix.target_sdk }}
       run: |
         cd /opt
-        wget https://github.com/edo9300/cctools-build/releases/download/preview/cctools-ios.tar.xz
+        wget https://github.com/edo9300/cctools-build/releases/download/osxcross/cctools-ios.tar.xz
         tar xf cctools-ios.tar.xz
-        cd cctools/bin
-        ln $COMPILER_ARCH-apple-darwin11-lipo -s lipo
-        ln $COMPILER_ARCH-apple-darwin11-ranlib -s ranlib
-        ln llvm-install-name-tool -s install_name_tool
-        cd ../sdk
-        ln $SPECIFIC_SDK -s $TARGET_SDK
-        echo "PATH=/opt/cctools/bin:$PATH" >> $GITHUB_ENV
+        echo "PATH=/opt/cctools/clang/bin:/opt/cctools/bin:$PATH" >> $GITHUB_ENV
     - name: Download and extract cached archive
       if: |
         (contains(github.event.head_commit.message, env.SKIP_CMD) != true &&
